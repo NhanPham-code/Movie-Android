@@ -208,6 +208,7 @@ public class MainActivity extends AppCompatActivity implements CallbackService {
     /**
      * Get intent from all reminder adapter to show movie detail
      */
+    // BUG: This method is not used
     private void getIntentFromAllReminderAdapter() {
         Intent intent = getIntent();
         if (intent != null) {
