@@ -1,7 +1,11 @@
 package com.example.ojtbadaassignment14;
 
+import android.content.BroadcastReceiver;
+import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.content.SharedPreferences;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.util.Log;
@@ -23,9 +27,13 @@ import androidx.appcompat.widget.Toolbar;
 import androidx.core.view.GravityCompat;
 import androidx.drawerlayout.widget.DrawerLayout;
 import androidx.fragment.app.Fragment;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
 import androidx.viewpager2.widget.ViewPager2;
 
+import com.example.ojtbadaassignment14.adapters.NavReminderAdapter;
 import com.example.ojtbadaassignment14.adapters.ViewPagerAdapter;
+import com.example.ojtbadaassignment14.db.DatabaseHelper;
 import com.example.ojtbadaassignment14.fragments.AboutFragment;
 import com.example.ojtbadaassignment14.fragments.CommonFragment;
 import com.example.ojtbadaassignment14.fragments.FavoriteListFragment;
@@ -33,6 +41,7 @@ import com.example.ojtbadaassignment14.fragments.MovieDetailFragment;
 import com.example.ojtbadaassignment14.fragments.MovieListFragment;
 import com.example.ojtbadaassignment14.fragments.SettingFragment;
 import com.example.ojtbadaassignment14.models.Movie;
+import com.example.ojtbadaassignment14.models.Reminder;
 import com.example.ojtbadaassignment14.services.Base64Helper;
 import com.example.ojtbadaassignment14.services.CallbackService;
 import com.google.android.material.badge.BadgeDrawable;
@@ -41,7 +50,9 @@ import com.google.android.material.tabs.TabLayout;
 import com.google.android.material.tabs.TabLayoutMediator;
 
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
+import java.util.stream.Collectors;
 
 public class MainActivity extends AppCompatActivity implements CallbackService {
 
@@ -77,6 +88,9 @@ public class MainActivity extends AppCompatActivity implements CallbackService {
     // Base64Helper
     Base64Helper base64Helper = new Base64Helper();
 
+    // DatabaseHelper
+    DatabaseHelper databaseHelper = new DatabaseHelper(this);
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -107,8 +121,14 @@ public class MainActivity extends AppCompatActivity implements CallbackService {
         // click edit profile button in navigation view
         onClickEditProfileButton();
 
-        // update reminder list in navigation view
+        // update reminder list in navigation view when reload activity
         updateReminderList();
+
+        // Register the receiver to update reminder list in navigation view after deleting a reminder
+        IntentFilter filter = new IntentFilter("com.example.ojtbadaassignment14.UPDATE_REMINDER_LIST");
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            registerReceiver(updateReminderListReceiver, filter, Context.RECEIVER_EXPORTED);
+        }
 
         // click show all reminder button in navigation view to show all reminder
         onClickShowAllReminderButton();
@@ -130,6 +150,13 @@ public class MainActivity extends AppCompatActivity implements CallbackService {
             }
         }, 1000);
 
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        // Unregister the receiver
+        unregisterReceiver(updateReminderListReceiver);
     }
 
     private void init() {
@@ -173,11 +200,36 @@ public class MainActivity extends AppCompatActivity implements CallbackService {
     }
 
 
-    // update reminder list in navigation view from SQLite
-    private void updateReminderList() {
-        // get reminder list from SQLite
+    /**
+     * Broadcast receiver to update reminder list in navigation view after deleting a reminder
+     */
+    private final BroadcastReceiver updateReminderListReceiver = new BroadcastReceiver() {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            // update reminder list in navigation view
+            updateReminderList();
+        }
 
-        // add to UI
+    };
+
+    /**
+     * Update reminder list in navigation view after add or delete a reminder
+     */
+    @Override
+    public void updateReminderList() {
+        // get reminder list from SQLite
+        List<Reminder> reminders = databaseHelper.getAllReminders();
+
+        // sort reminders by time and get the two nearest reminders
+        reminders.sort(Comparator.comparingLong(Reminder::getTime));
+        List<Reminder> nearestReminders = reminders.stream().limit(2).collect(Collectors.toList());
+
+        // set up RecyclerView with ReminderAdapter
+        View headerOfNavigationView = navigationView.getHeaderView(0);
+        RecyclerView rvReminder = headerOfNavigationView.findViewById(R.id.rvReminder);
+        NavReminderAdapter reminderAdapter = new NavReminderAdapter(nearestReminders, databaseHelper);
+        rvReminder.setLayoutManager(new LinearLayoutManager(this));
+        rvReminder.setAdapter(reminderAdapter);
     }
 
     /**
@@ -405,11 +457,17 @@ public class MainActivity extends AppCompatActivity implements CallbackService {
     public void onShowMovieDetail(Movie movie) {
         Log.d("check", "onShowMovieDetail called with movie: " + movie.getTitle());
 
+        // Check if the current tab is the favorite tab
+        if (tabLayout.getSelectedTabPosition() == 1) {
+            // Switch to the movie tab
+            viewPager2.setCurrentItem(0);
+        }
+
         // set up toolbar title
         toolbar.setTitle(movie.getTitle());
         btnChangeLayout.setVisibility(View.GONE);
         // show movie detail fragment
-        movieDetailFragment = new MovieDetailFragment(movie);
+        movieDetailFragment = new MovieDetailFragment(movie, MainActivity.this);
         commonFragment.setMovieDetailFragment(movieDetailFragment);
         commonFragment.showDetailFragment();
     }

@@ -15,7 +15,7 @@ public class Movie implements Parcelable{
     @SerializedName("genre_ids")
     private int[] genreIds;
     @SerializedName("id")
-    private int id;
+    private long id;
     @SerializedName("original_language")
     private String originalLanguage;
     @SerializedName("original_title")
@@ -42,7 +42,7 @@ public class Movie implements Parcelable{
     public Movie() {
     }
 
-    public Movie(boolean adult, String backdropPath, int[] genreIds, int id, String originalLanguage, String originalTitle, String overview, double popularity, String posterPath, String releaseDate, String title, boolean video, double voteAverage, int voteCount) {
+    public Movie(boolean adult, String backdropPath, int[] genreIds, long id, String originalLanguage, String originalTitle, String overview, double popularity, String posterPath, String releaseDate, String title, boolean video, double voteAverage, int voteCount) {
         this.adult = adult;
         this.backdropPath = backdropPath;
         this.genreIds = genreIds;
@@ -84,11 +84,11 @@ public class Movie implements Parcelable{
         this.genreIds = genreIds;
     }
 
-    public int getId() {
+    public long getId() {
         return id;
     }
 
-    public void setId(int id) {
+    public void setId(long id) {
         this.id = id;
     }
 
@@ -185,7 +185,7 @@ public class Movie implements Parcelable{
         adult = in.readByte() != 0;
         backdropPath = in.readString();
         genreIds = in.createIntArray();
-        id = in.readInt();
+        id = in.readLong();
         originalLanguage = in.readString();
         originalTitle = in.readString();
         overview = in.readString();
@@ -204,7 +204,7 @@ public class Movie implements Parcelable{
         dest.writeByte((byte) (adult ? 1 : 0));
         dest.writeString(backdropPath);
         dest.writeIntArray(genreIds);
-        dest.writeInt(id);
+        dest.writeLong(id);
         dest.writeString(originalLanguage);
         dest.writeString(originalTitle);
         dest.writeString(overview);

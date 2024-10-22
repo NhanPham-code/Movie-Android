@@ -38,6 +38,7 @@ import com.example.ojtbadaassignment14.models.Movie;
 import com.example.ojtbadaassignment14.models.Page;
 import com.example.ojtbadaassignment14.models.Reminder;
 import com.example.ojtbadaassignment14.receivers.AlarmReceiver;
+import com.example.ojtbadaassignment14.services.CallbackService;
 import com.squareup.picasso.Picasso;
 
 import java.util.ArrayList;
@@ -56,6 +57,7 @@ public class MovieDetailFragment extends Fragment {
     private static final String REMINDER_ID = "reminderId";
     private static  final  String REMINDER_MOVIE_ID = "movieId";
 
+    CallbackService callbackService;
 
     private final Movie movie;
     private List<Cast> castList;
@@ -73,8 +75,10 @@ public class MovieDetailFragment extends Fragment {
     DatabaseHelper databaseHelper;
 
 
-    public MovieDetailFragment(Movie movie) {
+    public MovieDetailFragment(Movie movie, CallbackService callbackService) {
+
         this.movie = movie;
+        this.callbackService = callbackService;
     }
 
     @Override
@@ -169,6 +173,9 @@ public class MovieDetailFragment extends Fragment {
 
                                 // Set alarm with id of reminder to delete reminder later
                                 scheduleAlarm(newReminder);
+
+                                // Callback Main activity update reminder list
+                                callbackService.updateReminderList();
 
                                 Toast.makeText(getActivity(), "Reminder set successfully", Toast.LENGTH_SHORT).show();
 

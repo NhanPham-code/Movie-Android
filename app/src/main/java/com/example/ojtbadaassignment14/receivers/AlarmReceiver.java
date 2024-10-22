@@ -54,13 +54,13 @@ public class AlarmReceiver extends BroadcastReceiver {
         // Fetch movie details and push notification
         fetchMovieDetailsAndPushNotification(context, movieId);
 
-        // ringtone
-        Uri alarmUri = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_ALARM);
-        if (alarmUri == null) {
-            alarmUri = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION);
-        }
-        Ringtone ringtone = RingtoneManager.getRingtone(context, alarmUri);
-        ringtone.play();
+//        // ringtone
+//        Uri alarmUri = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_ALARM);
+//        if (alarmUri == null) {
+//            alarmUri = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION);
+//        }
+//        Ringtone ringtone = RingtoneManager.getRingtone(context, alarmUri);
+//        ringtone.play();
 
         // Xóa reminder trong SQLite
         DatabaseHelper databaseHelper = new DatabaseHelper(context);
@@ -81,8 +81,17 @@ public class AlarmReceiver extends BroadcastReceiver {
             public void onResponse(@NonNull Call<Movie> call, @NonNull Response<Movie> response) {
                 if (response.isSuccessful() && response.body() != null) {
                     Log.d("check", "onResponse: Movie fetched successfully");
+
+                    // get movie details from API
                     Movie movie = response.body();
+
+                    // push notification
                     pushNotification(context, movie);
+
+                    // callback Main Activity to update the list
+                    Intent updateIntent = new Intent("com.example.ojtbadaassignment14.UPDATE_REMINDER_LIST");
+                    context.sendBroadcast(updateIntent);
+
                 } else {
                     Log.d("check", "Failed to fetch movie details");
                 }

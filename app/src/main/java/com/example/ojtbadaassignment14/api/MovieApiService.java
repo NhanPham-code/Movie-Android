@@ -29,7 +29,7 @@ public interface MovieApiService {
     Call<Page> getNowPlayingMovies(@Query("api_key" ) String apiKey, @Query("page") int page);
 
     @GET("movie/{movieId}/credits")
-    Call<CastOfMovie> getMovieCast(@Path("movieId") int movieId, @Query("api_key") String apiKey);
+    Call<CastOfMovie> getMovieCast(@Path("movieId") long movieId, @Query("api_key") String apiKey);
 
     @GET("movie/{movieId}")
     Call<Movie> getMovieDetail(@Path("movieId") long movieId, @Query("api_key") String apiKey);

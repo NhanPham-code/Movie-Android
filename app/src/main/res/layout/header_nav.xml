@@ -129,7 +129,7 @@
         android:layout_height="200dp"
         android:background="@drawable/movie_item_background"
         android:elevation="16dp"
-        tools:listitem="@layout/item_reminder"
+        tools:listitem="@layout/item_nav_reminder"
         android:layout_marginTop="10dp"
         app:layout_constraintTop_toBottomOf="@+id/tvReminder"
         app:layout_constraintStart_toStartOf="parent"

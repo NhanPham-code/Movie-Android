@@ -17,7 +17,7 @@ import java.util.List;
 public class DatabaseHelper extends SQLiteOpenHelper {
 
     private static final String DATABASE_NAME = "movies.db";
-    private static final int DATABASE_VERSION = 2;
+    private static final int DATABASE_VERSION = 3;
 
 
     public DatabaseHelper(@Nullable Context context) {
@@ -56,7 +56,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         db.close();
     }
 
-    public void removeFavoriteMovie(int movieId) {
+    public void removeFavoriteMovie(long movieId) {
         SQLiteDatabase db = this.getWritableDatabase();
         db.delete(MovieContract.MovieEntry.TABLE_MOVIES, MovieContract.MovieEntry.COLUMN_ID + " = ?", new String[]{String.valueOf(movieId)});
         db.close();
@@ -123,6 +123,27 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         return movieList;
     }
 
+    public Movie getMovieById(long movieId) {
+        SQLiteDatabase db = this.getReadableDatabase();
+        Cursor cursor = db.rawQuery("SELECT * FROM " + MovieContract.MovieEntry.TABLE_MOVIES + " WHERE " + MovieContract.MovieEntry.COLUMN_ID + " = ?", new String[]{String.valueOf(movieId)});
+
+        Movie movie = new Movie();
+        if (cursor.moveToFirst()) {
+            movie.setId(cursor.getInt(cursor.getColumnIndexOrThrow(MovieContract.MovieEntry.COLUMN_ID)));
+            movie.setTitle(cursor.getString(cursor.getColumnIndexOrThrow(MovieContract.MovieEntry.COLUMN_TITLE)));
+            movie.setVoteAverage(cursor.getFloat(cursor.getColumnIndexOrThrow(MovieContract.MovieEntry.COLUMN_VOTE_AVERAGE)));
+            movie.setReleaseDate(cursor.getString(cursor.getColumnIndexOrThrow(MovieContract.MovieEntry.COLUMN_RELEASE_DATE)));
+            movie.setOverview(cursor.getString(cursor.getColumnIndexOrThrow(MovieContract.MovieEntry.COLUMN_OVERVIEW)));
+            movie.setPosterPath(cursor.getString(cursor.getColumnIndexOrThrow(MovieContract.MovieEntry.COLUMN_POSTER_PATH)));
+            movie.setAdult(cursor.getInt(cursor.getColumnIndexOrThrow(MovieContract.MovieEntry.COLUMN_IS_ADULT)) == 1);
+            movie.setIsFavorite(cursor.getInt(cursor.getColumnIndexOrThrow(MovieContract.MovieEntry.COLUMN_IS_FAVORITE)));
+        }
+
+        cursor.close();
+        db.close();
+        return movie;
+    }
+
 
 
     public long addReminder(Reminder reminder) {
@@ -138,13 +159,11 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         return idOfInsertedRow;
     }
 
-
     public void removeReminder(long id) {
         SQLiteDatabase db = this.getWritableDatabase();
         db.delete(MovieContract.ReminderEntry.TABLE_REMINDERS, MovieContract.ReminderEntry.COLUMN_ID + " = ?", new String[]{String.valueOf(id)});
         db.close();
     }
-
 
     public List<Reminder> getAllReminders() {
         List<Reminder> reminderList = new ArrayList<>();
