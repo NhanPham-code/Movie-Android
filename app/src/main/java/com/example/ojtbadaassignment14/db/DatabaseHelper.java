@@ -17,7 +17,7 @@ import java.util.List;
 public class DatabaseHelper extends SQLiteOpenHelper {
 
     private static final String DATABASE_NAME = "movies.db";
-    private static final int DATABASE_VERSION = 3;
+    private static final int DATABASE_VERSION = 1;
 
 
     public DatabaseHelper(@Nullable Context context) {
@@ -35,6 +35,13 @@ public class DatabaseHelper extends SQLiteOpenHelper {
 
     @Override
     public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
+        db.execSQL(MovieContract.MovieEntry.DROP_MOVIES_TABLE);
+        db.execSQL(MovieContract.ReminderEntry.DROP_REMINDERS_TABLE);
+        onCreate(db);
+    }
+
+    @Override
+    public void onDowngrade(SQLiteDatabase db, int oldVersion, int newVersion) {
         db.execSQL(MovieContract.MovieEntry.DROP_MOVIES_TABLE);
         db.execSQL(MovieContract.ReminderEntry.DROP_REMINDERS_TABLE);
         onCreate(db);
@@ -184,6 +191,24 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         cursor.close();
         db.close();
         return reminderList;
+    }
+
+    public Reminder getReminderByMovieId(long movieId) {
+        SQLiteDatabase db = this.getReadableDatabase();
+        Cursor cursor = db.rawQuery("SELECT * FROM " + MovieContract.ReminderEntry.TABLE_REMINDERS + " " +
+                "WHERE " + MovieContract.ReminderEntry.COLUMN_MOVIE_ID + " = ?", new String[]{String.valueOf(movieId)});
+
+        Reminder reminder = null;
+        if (cursor.moveToFirst()) {
+            reminder = new Reminder();
+            reminder.setId(cursor.getInt(cursor.getColumnIndexOrThrow(MovieContract.ReminderEntry.COLUMN_ID)));
+            reminder.setTime(cursor.getLong(cursor.getColumnIndexOrThrow(MovieContract.ReminderEntry.COLUMN_TIME)));
+            reminder.setMovieId(cursor.getInt(cursor.getColumnIndexOrThrow(MovieContract.ReminderEntry.COLUMN_MOVIE_ID)));
+        }
+
+        cursor.close();
+        db.close();
+        return reminder;
     }
 
 }

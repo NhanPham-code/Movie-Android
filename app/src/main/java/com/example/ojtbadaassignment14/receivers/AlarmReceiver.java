@@ -54,13 +54,6 @@ public class AlarmReceiver extends BroadcastReceiver {
         // Fetch movie details and push notification
         fetchMovieDetailsAndPushNotification(context, movieId);
 
-//        // ringtone
-//        Uri alarmUri = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_ALARM);
-//        if (alarmUri == null) {
-//            alarmUri = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION);
-//        }
-//        Ringtone ringtone = RingtoneManager.getRingtone(context, alarmUri);
-//        ringtone.play();
 
         // Xóa reminder trong SQLite
         DatabaseHelper databaseHelper = new DatabaseHelper(context);

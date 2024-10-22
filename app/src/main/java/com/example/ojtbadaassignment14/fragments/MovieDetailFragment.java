@@ -120,6 +120,12 @@ public class MovieDetailFragment extends Fragment {
 
         // set listener for reminder button
         btnReminder.setOnClickListener(v -> {
+            // check Movie is already in reminder list
+            Reminder reminder = databaseHelper.getReminderByMovieId(movie.getId());
+            if(reminder != null) {
+                Toast.makeText(getActivity(), "Reminder already set", Toast.LENGTH_SHORT).show();
+                return;
+            }
             // Show date time picker
             showDateTimePicker();
         });

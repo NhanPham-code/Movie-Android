@@ -5,6 +5,7 @@
     android:layout_height="wrap_content"
     android:layout_margin="10dp"
     android:padding="10dp"
+    android:elevation="16dp"
     android:background="@drawable/movie_item_background">
 
     <TextView

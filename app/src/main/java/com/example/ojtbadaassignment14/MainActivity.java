@@ -115,14 +115,9 @@ public class MainActivity extends AppCompatActivity implements CallbackService {
         // Set up search button of favorite list
         setUpSearchButton();
 
-        // update user information in header of navigation view from shared preferences
-        updateUserProfile();
-
         // click edit profile button in navigation view
         onClickEditProfileButton();
 
-        // update reminder list in navigation view when reload activity
-        updateReminderList();
 
         // Register the receiver to update reminder list in navigation view after deleting a reminder
         IntentFilter filter = new IntentFilter("com.example.ojtbadaassignment14.UPDATE_REMINDER_LIST");
@@ -136,13 +131,21 @@ public class MainActivity extends AppCompatActivity implements CallbackService {
 
 
     /**
-     * Get user profile data from SharedPreferences when activity start
+     * Get user profile data from SharedPreferences when activity start and fill in the header of navigation view
+     * Update reminder list in navigation view when activity start if reminder is added or deleted in ReminderActivity
+     * Update badge tag for favorite list tab when activity start (Get favorite list size from SQLite)
      */
     @Override
     protected void onStart() {
         super.onStart();
 
-        // update badge tag for favorite list tab
+        // update user information in header of navigation view from shared preferences
+        updateUserProfile();
+
+        // update reminder list in navigation view when reload activity
+        updateReminderList();
+
+        // update badge tag for favorite list tab wait for 1 second to tab layout create completely before update badge
         new Handler().postDelayed(new Runnable() {
             @Override
             public void run() {
@@ -188,7 +191,7 @@ public class MainActivity extends AppCompatActivity implements CallbackService {
             @Override
             public void onClick(View v) {
                 isGridLayout = !isGridLayout;
-                if(isGridLayout) {
+                if (isGridLayout) {
                     btnChangeLayout.setImageResource(R.drawable.ic_list);
                     movieListFragment.changeLayout(isGridLayout);
                 } else {
@@ -236,7 +239,18 @@ public class MainActivity extends AppCompatActivity implements CallbackService {
      * Click show all reminder button in navigation view
      */
     private void onClickShowAllReminderButton() {
-
+        View headerOfNavigationView = navigationView.getHeaderView(0);
+        Button btnShowAllReminder = headerOfNavigationView.findViewById(R.id.btnShowAll);
+        btnShowAllReminder.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                // move to reminder activity
+                Intent intent = new Intent(MainActivity.this, AllReminderActivity.class);
+                startActivity(intent);
+                // close drawer
+                drawerLayout.closeDrawer(GravityCompat.START);
+            }
+        });
     }
 
 
@@ -389,8 +403,8 @@ public class MainActivity extends AppCompatActivity implements CallbackService {
         createTabName();
         createTabIcon();
         new TabLayoutMediator(tabLayout, viewPager2, (tab, position) -> {
-                    tab.setText(tabNameList.get(position));
-                    tab.setIcon(tabIconList.get(position));
+            tab.setText(tabNameList.get(position));
+            tab.setIcon(tabIconList.get(position));
         }).attach();
     }
 
@@ -419,6 +433,7 @@ public class MainActivity extends AppCompatActivity implements CallbackService {
 
     /**
      * Create option menu
+     *
      * @param menu: menu object
      * @return true if menu is created
      */
@@ -431,6 +446,7 @@ public class MainActivity extends AppCompatActivity implements CallbackService {
 
     /**
      * Handle option menu item click to load movie list with different category
+     *
      * @param item: menu item
      * @return true if item is selected
      */
@@ -451,6 +467,7 @@ public class MainActivity extends AppCompatActivity implements CallbackService {
 
     /**
      * Show movie detail
+     *
      * @param movie: movie object to show detail
      */
     @Override
@@ -483,7 +500,8 @@ public class MainActivity extends AppCompatActivity implements CallbackService {
     }
 
     /**
-     * Favorite or unfavorite movie
+     * Callback from movie list fragment to favorite or unfavorite movie
+     *
      * @param movie: movie object to favorite or unfavorite
      */
     @Override
@@ -493,13 +511,12 @@ public class MainActivity extends AppCompatActivity implements CallbackService {
         // update movie list and favorite list
         movieListFragment.updateMovieListShow(movie);
         favoriteListFragment.updateFavoriteList(movie);
-        // update badge tag
-        int count = favoriteListFragment.getFavoriteListSize();
-        setBadge(count);
+        // update badge tag after favorite or unfavorite movie
+        updateBadgeTag();
     }
 
     /**
-     * Update badge tag for favorite list tab
+     * Update badge tag for favorite list tab when run app
      */
     private void updateBadgeTag() {
         int count = favoriteListFragment.getFavoriteListSize();
@@ -507,7 +524,8 @@ public class MainActivity extends AppCompatActivity implements CallbackService {
     }
 
     /**
-     * Set badge for favorite list tab
+     * Set badge for favorite list tab to show number of favorite movies after favorite or unfavorite movie
+     *
      * @param count: number of favorite movies
      */
     private void setBadge(int count) {

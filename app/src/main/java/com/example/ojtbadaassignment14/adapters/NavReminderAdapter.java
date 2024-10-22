@@ -4,11 +4,14 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.ojtbadaassignment14.R;
+import com.example.ojtbadaassignment14.api.MovieApiService;
+import com.example.ojtbadaassignment14.api.RetrofitClient;
 import com.example.ojtbadaassignment14.db.DatabaseHelper;
 import com.example.ojtbadaassignment14.models.Movie;
 import com.example.ojtbadaassignment14.models.Reminder;
@@ -17,6 +20,10 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.List;
 import java.util.Locale;
+
+import retrofit2.Call;
+import retrofit2.Callback;
+import retrofit2.Response;
 
 public class NavReminderAdapter extends RecyclerView.Adapter<NavReminderAdapter.ReminderViewHolder> {
 
@@ -38,9 +45,27 @@ public class NavReminderAdapter extends RecyclerView.Adapter<NavReminderAdapter.
     @Override
     public void onBindViewHolder(@NonNull ReminderViewHolder holder, int position) {
         Reminder reminder = reminderList.get(position);
-        Movie movie = databaseHelper.getMovieById(reminder.getMovieId());
-        holder.tvMovieInfo.setText(movie.getTitle() + " - " + movie.getReleaseDate().substring(0, 4) + " - " + String.format("%.1f", movie.getVoteAverage()));
-        holder.tvReminderInfo.setText(new SimpleDateFormat("yyyy-MM-dd HH:mm", Locale.getDefault()).format(new Date(reminder.getTime())));
+
+        // Fetch movie details from API
+        MovieApiService apiService = RetrofitClient.getInstance().getMovieApiService();
+        Call<Movie> call = apiService.getMovieDetail(reminder.getMovieId(), RetrofitClient.API_KEY);
+        call.enqueue(new Callback<Movie>() {
+            @Override
+            public void onResponse(@NonNull Call<Movie> call, @NonNull Response<Movie> response) {
+                if (response.isSuccessful() && response.body() != null) {
+                    Movie movie = response.body();
+                    holder.tvMovieInfo.setText(movie.getTitle() + " - " + movie.getReleaseDate().substring(0, 4) + " - " + String.format("%.1f", movie.getVoteAverage()));
+                    holder.tvReminderInfo.setText(new SimpleDateFormat("yyyy-MM-dd HH:mm", Locale.getDefault()).format(new Date(reminder.getTime())));
+                } else {
+                    Toast.makeText(holder.itemView.getContext(), "Error: " + response.message(), Toast.LENGTH_SHORT).show();
+                }
+            }
+
+            @Override
+            public void onFailure(@NonNull Call<Movie> call, @NonNull Throwable t) {
+                Toast.makeText(holder.itemView.getContext(), "Error: " + t.getMessage(), Toast.LENGTH_SHORT).show();
+            }
+        });
     }
 
     @Override
