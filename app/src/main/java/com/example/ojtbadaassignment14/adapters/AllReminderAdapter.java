@@ -1,5 +1,6 @@
 package com.example.ojtbadaassignment14.adapters;
 
+import android.content.Intent;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -13,12 +14,14 @@ import androidx.annotation.NonNull;
 import androidx.appcompat.app.AlertDialog;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.example.ojtbadaassignment14.MainActivity;
 import com.example.ojtbadaassignment14.R;
 import com.example.ojtbadaassignment14.api.MovieApiService;
 import com.example.ojtbadaassignment14.api.RetrofitClient;
 import com.example.ojtbadaassignment14.db.DatabaseHelper;
 import com.example.ojtbadaassignment14.models.Movie;
 import com.example.ojtbadaassignment14.models.Reminder;
+import com.example.ojtbadaassignment14.services.CallbackService;
 import com.squareup.picasso.Picasso;
 
 import java.text.SimpleDateFormat;
@@ -32,8 +35,8 @@ import retrofit2.Response;
 
 public class AllReminderAdapter extends RecyclerView.Adapter<AllReminderAdapter.AllReminderViewHolder> {
 
-    private List<Reminder> reminderList;
-    private DatabaseHelper databaseHelper;
+    List<Reminder> reminderList;
+    DatabaseHelper databaseHelper;
 
     public AllReminderAdapter(List<Reminder> reminderList, DatabaseHelper databaseHelper) {
         this.reminderList = reminderList;
@@ -49,6 +52,7 @@ public class AllReminderAdapter extends RecyclerView.Adapter<AllReminderAdapter.
 
     @Override
     public void onBindViewHolder(@NonNull AllReminderViewHolder holder, int position) {
+
         Reminder reminder = reminderList.get(position);
 
         // Call API to get movie details
@@ -72,10 +76,11 @@ public class AllReminderAdapter extends RecyclerView.Adapter<AllReminderAdapter.
             }
 
             @Override
-            public void onFailure(Call<Movie> call, Throwable t) {
+            public void onFailure(@NonNull Call<Movie> call, @NonNull Throwable t) {
                 Toast.makeText(holder.itemView.getContext(), "Error: " + t.getMessage(), Toast.LENGTH_SHORT).show();
             }
         });
+
 
         // Set delete reminder button
         holder.btnDeleteReminder.setOnClickListener(v -> {
@@ -103,6 +108,31 @@ public class AllReminderAdapter extends RecyclerView.Adapter<AllReminderAdapter.
                 return false;
             });
             popupMenu.show();
+        });
+
+
+        // Set on click listener for reminder item
+        holder.itemView.setOnClickListener(view -> {
+            // Call API to get movie details
+            MovieApiService apiService1 = RetrofitClient.getInstance().getMovieApiService();
+            Call<Movie> call1 = apiService1.getMovieDetail(reminder.getMovieId(), RetrofitClient.API_KEY);
+            call1.enqueue(new Callback<Movie>() {
+                @Override
+                public void onResponse(@NonNull Call<Movie> call, @NonNull Response<Movie> response) {
+                    if (response.isSuccessful() && response.body() != null) {
+                        Movie movie = response.body();
+                        // Start MainActivity with the movie object
+                        Intent intent = new Intent(holder.itemView.getContext(), MainActivity.class);
+                        intent.putExtra("movie", movie);
+                        holder.itemView.getContext().startActivity(intent);
+                    }
+                }
+
+                @Override
+                public void onFailure(@NonNull Call<Movie> call, @NonNull Throwable t) {
+                    Toast.makeText(holder.itemView.getContext(), "Error: " + t.getMessage(), Toast.LENGTH_SHORT).show();
+                }
+            });
         });
     }
 

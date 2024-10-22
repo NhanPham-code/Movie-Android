@@ -117,6 +117,20 @@ public class MovieDetailFragment extends Fragment {
         recyclerView.setLayoutManager(new LinearLayoutManager(getContext(), LinearLayoutManager.HORIZONTAL, false));
         fetchMovieCast(); // fetch movie cast
 
+        // set listener for favorite button
+        ivFavorite.setOnClickListener(v -> {
+            if(movie.getIsFavorite() == 0) {
+                ivFavorite.setImageResource(R.drawable.ic_star_favorite);
+                // callback Main activity to update favorite list
+                callbackService.onFavoriteMovie(movie);
+                Toast.makeText(getActivity(), "Added to favorite", Toast.LENGTH_SHORT).show();
+            } else {
+                ivFavorite.setImageResource(R.drawable.ic_star);
+                // callback Main activity to update favorite list
+                callbackService.onFavoriteMovie(movie);
+                Toast.makeText(getActivity(), "Removed from favorite", Toast.LENGTH_SHORT).show();
+            }
+        });
 
         // set listener for reminder button
         btnReminder.setOnClickListener(v -> {

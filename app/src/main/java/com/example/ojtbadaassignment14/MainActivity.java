@@ -119,7 +119,7 @@ public class MainActivity extends AppCompatActivity implements CallbackService {
         onClickEditProfileButton();
 
 
-        // Register the receiver to update reminder list in navigation view after deleting a reminder
+        // Register the receiver to update reminder list in navigation view after deleting a reminder from alarmReceiver
         IntentFilter filter = new IntentFilter("com.example.ojtbadaassignment14.UPDATE_REMINDER_LIST");
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             registerReceiver(updateReminderListReceiver, filter, Context.RECEIVER_EXPORTED);
@@ -127,6 +127,9 @@ public class MainActivity extends AppCompatActivity implements CallbackService {
 
         // click show all reminder button in navigation view to show all reminder
         onClickShowAllReminderButton();
+
+        // get intent from all reminder adapter to show movie detail
+        getIntentFromAllReminderAdapter();
     }
 
 
@@ -202,6 +205,19 @@ public class MainActivity extends AppCompatActivity implements CallbackService {
         });
     }
 
+    /**
+     * Get intent from all reminder adapter to show movie detail
+     */
+    private void getIntentFromAllReminderAdapter() {
+        Intent intent = getIntent();
+        if (intent != null) {
+            Movie movie = intent.getParcelableExtra("movie");
+            if (movie != null) {
+                onShowMovieDetail(movie);
+            }
+        }
+    }
+
 
     /**
      * Broadcast receiver to update reminder list in navigation view after deleting a reminder
@@ -234,6 +250,7 @@ public class MainActivity extends AppCompatActivity implements CallbackService {
         rvReminder.setLayoutManager(new LinearLayoutManager(this));
         rvReminder.setAdapter(reminderAdapter);
     }
+
 
     /**
      * Click show all reminder button in navigation view
