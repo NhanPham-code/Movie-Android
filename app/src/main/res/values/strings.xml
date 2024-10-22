@@ -1,0 +1,17 @@
+<resources>
+    <string name="app_name">OJT.BADA.Assignment14</string>
+    <!-- TODO: Remove or change this placeholder text -->
+    <string name="hello_blank_fragment">Hello blank fragment</string>
+    <string name="open_drawer">Open Drawer</string>
+    <string name="close_drawer">Close Drawer</string>
+    <string name="change_layout">Change layout</string>
+    <string name="title">Title</string>
+    <string name="overview">Overview:</string>
+    <string name="rating">Rating:</string>
+    <string name="release_date">Release date:</string>
+    <string name="search" />
+    <string name="reminder">Reminder</string>
+    <string name="reminder1">Reminder</string>
+    <string name="edit">Edit</string>
+    <string name="show_all">Show All</string>
+</resources>
