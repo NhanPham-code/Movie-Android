@@ -34,19 +34,22 @@ public class FavoriteListFragment extends Fragment {
 
     private List<Movie> favoriteList;
 
-
-    public FavoriteListFragment(CallbackService callbackService) {
+    public FavoriteListFragment() {
         // Required empty public constructor
-        this.favoriteList = new ArrayList<>();
-        this.callbackService = callbackService;
+    }
 
+    public static FavoriteListFragment newInstance() {
+        FavoriteListFragment fragment = new FavoriteListFragment();
+        Bundle args = new Bundle();
+        fragment.setArguments(args);
+        return fragment;
     }
 
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-
+        favoriteList = new ArrayList<>();
     }
 
     @Override
@@ -72,7 +75,18 @@ public class FavoriteListFragment extends Fragment {
         return view;
     }
 
+    /**
+     * Set callback service
+     * @param callbackService
+     */
+    public void setCallbackService(CallbackService callbackService) {
+        this.callbackService = callbackService;
+    }
 
+    /**
+     * Update favorite list
+     * @param movie
+     */
     public void updateFavoriteList(Movie movie) {
         if (movie.getIsFavorite() == 1) {
             favoriteList.add(movie);

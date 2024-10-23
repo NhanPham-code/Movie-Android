@@ -59,7 +59,7 @@ public class MovieDetailFragment extends Fragment {
 
     CallbackService callbackService;
 
-    private final Movie movie;
+    private Movie movie;
     private List<Cast> castList;
 
     ImageView ivFavorite;
@@ -74,16 +74,24 @@ public class MovieDetailFragment extends Fragment {
 
     DatabaseHelper databaseHelper;
 
+    public MovieDetailFragment() {
+    }
 
-    public MovieDetailFragment(Movie movie, CallbackService callbackService) {
 
-        this.movie = movie;
-        this.callbackService = callbackService;
+    public static MovieDetailFragment newInstance(Movie movie) {
+        MovieDetailFragment fragment = new MovieDetailFragment();
+        Bundle args = new Bundle();
+        args.putParcelable("movie", movie);
+        fragment.setArguments(args);
+        return fragment;
     }
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        if (getArguments() != null) {
+            this.movie = getArguments().getParcelable("movie");
+        }
         castList = new ArrayList<>();
         databaseHelper = new DatabaseHelper(getContext());
     }
@@ -147,6 +155,34 @@ public class MovieDetailFragment extends Fragment {
         return view;
     }
 
+    /**
+     * Set callback service
+     * @param callbackService
+     */
+    public void setCallbackService(CallbackService callbackService) {
+        this.callbackService = callbackService;
+    }
+
+    /**
+     * Update movie detail
+     *
+     * @param movie: movie object with updated details
+     */
+    public void updateMovieDetail(Movie movie) {
+        // Update the movie object
+        this.movie = movie;
+
+        // Update the views
+        if(movie.getIsFavorite() == 0) {
+            ivFavorite.setImageResource(R.drawable.ic_star);
+        } else {
+            ivFavorite.setImageResource(R.drawable.ic_star_favorite);
+        }
+    }
+
+    /**
+     * Show date time picker
+     */
     private void showDateTimePicker() {
 
         // check permission to show notification

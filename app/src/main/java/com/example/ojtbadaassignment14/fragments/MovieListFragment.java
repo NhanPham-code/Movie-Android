@@ -8,6 +8,7 @@ import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.GridLayoutManager;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
+import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -41,6 +42,7 @@ public class MovieListFragment extends Fragment {
     private RecyclerView recyclerView;
     private MovieListAdapter movieListAdapter;
     ProgressBar progressBar;
+    SwipeRefreshLayout swipeRefreshLayout;
 
     // data
     private Page page;
@@ -49,17 +51,22 @@ public class MovieListFragment extends Fragment {
     private boolean isLoading = false; // to check if data is loading
 
 
-    public MovieListFragment(CallbackService callbackService) {
-        this.movieList = new ArrayList<>(); // init movie list to avoid null pointer exception
-        this.callbackService = callbackService;
+    public MovieListFragment() {
+
     }
 
+    public static MovieListFragment newInstance() {
+        MovieListFragment fragment = new MovieListFragment();
+        Bundle args = new Bundle();
+        fragment.setArguments(args);
+        return fragment;
+    }
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         Log.d("check", "onCreate: ");
-
+        movieList = new ArrayList<>();
     }
 
     @Override
@@ -69,6 +76,7 @@ public class MovieListFragment extends Fragment {
         View view = inflater.inflate(R.layout.fragment_movie_list, container, false);
         recyclerView = view.findViewById(R.id.recycler_view);
         progressBar = view.findViewById(R.id.idPBLoading);
+        swipeRefreshLayout = view.findViewById(R.id.swipe_refresh_layout);
 
 
         // Set up the recycler view
@@ -94,10 +102,34 @@ public class MovieListFragment extends Fragment {
             }
         });
 
+        // listener for swipe refresh layout
+        swipeRefreshLayout.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
+            @Override
+            public void onRefresh() {
+                // clear movie list
+                movieList.clear();
+                // get popular movie list
+                getPopularMovieList(currentPage);
+                // stop refreshing
+                swipeRefreshLayout.setRefreshing(false);
+            }
+        });
+
         return view;
     }
 
+    /**
+     * Set callback service
+     * @param callbackService
+     */
+    public void setCallbackService(CallbackService callbackService) {
+        this.callbackService = callbackService;
+    }
 
+    /**
+     * Check if the end of the list is near
+     * @return
+     */
     private boolean isNearEndOfList() {
         RecyclerView.LayoutManager layoutManager = recyclerView.getLayoutManager();
         if (layoutManager instanceof LinearLayoutManager) {
@@ -392,6 +424,10 @@ public class MovieListFragment extends Fragment {
         Toast.makeText(getContext(), "Failed to load data", Toast.LENGTH_SHORT).show();
     }
 
+    /**
+     * Change layout of movie list
+     * @param isGridLayout
+     */
     public void changeLayout(boolean isGridLayout) {
         if (isGridLayout) {
             recyclerView.setLayoutManager(new GridLayoutManager(getContext(), 2));
@@ -402,7 +438,10 @@ public class MovieListFragment extends Fragment {
         recyclerView.setAdapter(movieListAdapter);
     }
 
-
+    /**
+     * Update movie list show
+     * @param movie
+     */
     public void updateMovieListShow(Movie movie) {
         for (int i = 0; i < movieList.size(); i++) {
             if (movieList.get(i).getId() == movie.getId()) {

@@ -20,9 +20,8 @@ public class CommonFragment extends Fragment {
     private MovieListFragment movieListFragment;
     private MovieDetailFragment movieDetailFragment;
 
-    public CommonFragment(CallbackService callbackService) {
+    public CommonFragment() {
         // Required empty public constructor
-        this.callbackService = callbackService;
     }
 
     public void setMovieListFragment(MovieListFragment movieListFragment) {
@@ -33,9 +32,28 @@ public class CommonFragment extends Fragment {
         this.movieDetailFragment = movieDetailFragment;
     }
 
+    public void setCallbackService(CallbackService callbackService) {
+        this.callbackService = callbackService;
+    }
+
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
+    }
+
+    @Override
+    public View onCreateView(LayoutInflater inflater, ViewGroup container,
+                             Bundle savedInstanceState) {
+        // Inflate the layout for this fragment
+        View view = inflater.inflate(R.layout.fragment_common, container, false);
+
+        // Show movie list fragment
+        getChildFragmentManager().beginTransaction()
+                .replace(R.id.fragment_container_view_tag, movieListFragment)
+                .addToBackStack(MovieDetailFragment.class.getName())
+                .commit();
+
 
         // Add back button handler
         getActivity().getOnBackPressedDispatcher().addCallback(this, new OnBackPressedCallback(true) {
@@ -49,18 +67,7 @@ public class CommonFragment extends Fragment {
                 }
             }
         });
-    }
 
-    @Override
-    public View onCreateView(LayoutInflater inflater, ViewGroup container,
-                             Bundle savedInstanceState) {
-        // Inflate the layout for this fragment
-        View view = inflater.inflate(R.layout.fragment_common, container, false);
-
-        getChildFragmentManager().beginTransaction()
-                .replace(R.id.fragment_container_view_tag, movieListFragment)
-                .addToBackStack(MovieDetailFragment.class.getName())
-                .commit();
 
         return view;
     }

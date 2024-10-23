@@ -128,8 +128,6 @@ public class MainActivity extends AppCompatActivity implements CallbackService {
         // click show all reminder button in navigation view to show all reminder
         onClickShowAllReminderButton();
 
-        // get intent from all reminder adapter to show movie detail
-        getIntentFromAllReminderAdapter();
     }
 
 
@@ -155,6 +153,9 @@ public class MainActivity extends AppCompatActivity implements CallbackService {
                 updateBadgeTag();
             }
         }, 1000);
+
+        // get intent from all reminder adapter to show movie detail
+        getIntentFromAllReminderAdapter();
 
     }
 
@@ -206,15 +207,20 @@ public class MainActivity extends AppCompatActivity implements CallbackService {
     }
 
     /**
-     * Get intent from all reminder adapter to show movie detail
+     * Get intent from all reminder adapter to show movie detail after clicking on reminder
      */
-    // BUG: This method is not used
     private void getIntentFromAllReminderAdapter() {
         Intent intent = getIntent();
         if (intent != null) {
             Movie movie = intent.getParcelableExtra("movie");
             if (movie != null) {
-                onShowMovieDetail(movie);
+                // Show movie detail fragment
+                new Handler().postDelayed(new Runnable() {
+                    @Override
+                    public void run() {
+                        onShowMovieDetail(movie);
+                    }
+                }, 500);
             }
         }
     }
@@ -400,10 +406,14 @@ public class MainActivity extends AppCompatActivity implements CallbackService {
      */
     private void createFragments() {
         // create fragments
-        movieListFragment = new MovieListFragment(MainActivity.this);
-        commonFragment = new CommonFragment(MainActivity.this); // use common fragment class to handle fragment transaction
+        movieListFragment = MovieListFragment.newInstance();
+        movieListFragment.setCallbackService(MainActivity.this);
+        commonFragment = new CommonFragment();// use common fragment class to handle fragment transaction
+        commonFragment.setCallbackService(MainActivity.this);
         commonFragment.setMovieListFragment(movieListFragment);
-        favoriteListFragment = new FavoriteListFragment(MainActivity.this);
+        favoriteListFragment = FavoriteListFragment.newInstance();
+        favoriteListFragment.setCallbackService(MainActivity.this);
+
         settingFragment = new SettingFragment();
         aboutFragment = new AboutFragment();
 
@@ -415,7 +425,7 @@ public class MainActivity extends AppCompatActivity implements CallbackService {
 
         viewPagerAdapter = new ViewPagerAdapter(this, fragmentList);
         viewPager2.setAdapter(viewPagerAdapter);
-        viewPager2.setOffscreenPageLimit(2); // create two 2 tabs to avoid null
+        viewPager2.setOffscreenPageLimit(4); // create two 4 tabs to avoid null
 
         // set tab layout with view pager
         createTabName();
@@ -501,10 +511,18 @@ public class MainActivity extends AppCompatActivity implements CallbackService {
         // set up toolbar title
         toolbar.setTitle(movie.getTitle());
         btnChangeLayout.setVisibility(View.GONE);
-        // show movie detail fragment
-        movieDetailFragment = new MovieDetailFragment(movie, MainActivity.this);
-        commonFragment.setMovieDetailFragment(movieDetailFragment);
-        commonFragment.showDetailFragment();
+
+        // Create MovieDetailFragment
+        movieDetailFragment = MovieDetailFragment.newInstance(movie);
+        movieDetailFragment.setCallbackService(MainActivity.this);
+
+        // Add fragment to CommonFragment if it's attached
+        if (commonFragment.isAdded()) {
+            commonFragment.setMovieDetailFragment(movieDetailFragment);
+            commonFragment.showDetailFragment();
+        } else {
+            Log.d("MainActivity", "CommonFragment is not attached yet.");
+        }
     }
 
     /**
@@ -526,11 +544,19 @@ public class MainActivity extends AppCompatActivity implements CallbackService {
     public void onFavoriteMovie(Movie movie) {
         // update movie favorite status
         movie.setIsFavorite(movie.getIsFavorite() == 0 ? 1 : 0);
+
         // update movie list and favorite list
         movieListFragment.updateMovieListShow(movie);
         favoriteListFragment.updateFavoriteList(movie);
+
+        // update movie detail fragment if it's visible
+        if (movieDetailFragment != null && movieDetailFragment.isVisible()) {
+            movieDetailFragment.updateMovieDetail(movie);
+        }
+
         // update badge tag after favorite or unfavorite movie
         updateBadgeTag();
+
     }
 
     /**
