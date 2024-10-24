@@ -1,6 +1,8 @@
 package com.example.ojtbadaassignment14.fragments;
 
 import android.annotation.SuppressLint;
+import android.content.Context;
+import android.content.SharedPreferences;
 import android.os.Bundle;
 
 import androidx.annotation.NonNull;
@@ -10,6 +12,7 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 
+import android.os.Handler;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -85,9 +88,12 @@ public class MovieListFragment extends Fragment {
         recyclerView.setAdapter(movieListAdapter);
 
         // get popular movie list in default
-        getPopularMovieList(currentPage);
+        //getPopularMovieList(currentPage);
 
-        // set listener for RecyclerView
+        // Load movie list based on setting save into share preferences
+        getMovieListByCategoryFromSharePreferences();
+
+        // set listener for RecyclerView to load more data when near the end of the list
         recyclerView.addOnScrollListener(new RecyclerView.OnScrollListener() {
             @Override
             public void onScrolled(@NonNull RecyclerView recyclerView, int dx, int dy) {
@@ -96,20 +102,36 @@ public class MovieListFragment extends Fragment {
                     Log.d("checked", "onScrolled: load more data");
                     // set loading status to check point is loading more data and avoid loading more data at the same time
                     isLoading = true;
+
+                    // increase current page
+                    currentPage++;
+
                     // load more data
-                    getPopularMovieList(++currentPage);
+                    //getPopularMovieList(++currentPage);
+
+                    // load more data based on the current category
+                    getMovieListByCategoryFromSharePreferences();
                 }
+
             }
         });
 
-        // listener for swipe refresh layout
+        // listener for swipe refresh layout to refresh data
         swipeRefreshLayout.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
             @Override
             public void onRefresh() {
                 // clear movie list
                 movieList.clear();
+
+                // reset current page
+                currentPage = 1;
+
                 // get popular movie list
-                getPopularMovieList(currentPage);
+                //getPopularMovieList(currentPage);
+
+                // load more data based on the current category
+                getMovieListByCategoryFromSharePreferences();
+
                 // stop refreshing
                 swipeRefreshLayout.setRefreshing(false);
             }
@@ -118,17 +140,75 @@ public class MovieListFragment extends Fragment {
         return view;
     }
 
+
+    /**
+     * Filter movie list by category, rating, release year, and sort by from user setting
+     * and update movie list
+     */
+    //BUG
+    private void getMovieListByCategoryFromSharePreferences() {
+        // Retrieve preferences
+        SharedPreferences sharedPreferences = getActivity().getSharedPreferences("MoviePreferences", Context.MODE_PRIVATE);
+        String category = sharedPreferences.getString("category", "Popular");
+
+        // get movie list by category
+        switch (category) {
+            case "Popular":
+                getPopularMovieList(currentPage);
+                break;
+            case "Top Rated":
+                getTopRatedMovieList(currentPage);
+                break;
+            case "Upcoming":
+                getUpcomingMovieList(currentPage);
+                break;
+            case "Now Playing":
+                getNowPlayingMovieList(currentPage);
+                break;
+        }
+
+    }
+
+    private void filterAndSortMovieList() {
+        SharedPreferences sharedPreferences = getActivity().getSharedPreferences("MoviePreferences", Context.MODE_PRIVATE);
+        String rating = sharedPreferences.getString("rating", "0");
+        String releaseYear = sharedPreferences.getString("releaseYear", "1970");
+        String sortBy = sharedPreferences.getString("sortBy", "Release Year");
+
+        // filter movie list by rating, release year
+        List<Movie> filteredMovies = new ArrayList<>();
+        for (Movie movie : movieList) {
+            if (movie.getVoteAverage() >= Double.parseDouble(rating) &&
+                    Integer.parseInt(movie.getReleaseDate().substring(0, 4)) >= Integer.parseInt(releaseYear)) {
+                filteredMovies.add(movie);
+            }
+        }
+
+        // sort movie list
+        if (sortBy.equals("Release Year")) {
+            filteredMovies.sort((o1, o2) -> o2.getReleaseDate().compareTo(o1.getReleaseDate()));
+        } else {
+            filteredMovies.sort((o1, o2) -> Double.compare(o2.getVoteAverage(), o1.getVoteAverage()));
+        }
+
+        // update movie list
+        movieList.clear();
+        movieList.addAll(filteredMovies);
+        movieListAdapter.notifyDataSetChanged();
+    }
+
     /**
      * Set callback service
-     * @param callbackService
+     * @param callbackService: callback service
      */
     public void setCallbackService(CallbackService callbackService) {
         this.callbackService = callbackService;
     }
 
+
     /**
      * Check if the end of the list is near
-     * @return
+     * @return: true if the end of the list is near, false otherwise
      */
     private boolean isNearEndOfList() {
         RecyclerView.LayoutManager layoutManager = recyclerView.getLayoutManager();
@@ -187,11 +267,14 @@ public class MovieListFragment extends Fragment {
                         }
 
                         movieList.addAll(newMovies);
-                        movieListAdapter.notifyDataSetChanged();
+                        //movieListAdapter.notifyDataSetChanged();
                         progressBar.setVisibility(View.GONE);
 
                         // set loading status to false after loading data for next time loading
                         isLoading = false;
+
+                        // filter and sort movie list after loading data from API
+                        filterAndSortMovieList();
 
                         Log.d("check", "onResponse: " + movieList.size());
                         Log.d("check", "onResponse: " + movieList.get(0).getTitle());
@@ -249,11 +332,14 @@ public class MovieListFragment extends Fragment {
                         }
 
                         movieList.addAll(newMovies);
-                        movieListAdapter.notifyDataSetChanged();
+                        //movieListAdapter.notifyDataSetChanged();
                         progressBar.setVisibility(View.GONE);
 
                         // set loading status to false after loading data for next time loading
                         isLoading = false;
+
+                        // filter and sort movie list after loading data from API
+                        filterAndSortMovieList();
 
                         Log.d("check", "onResponse: " + movieList.size());
                         Log.d("check", "onResponse: " + movieList.get(0).getTitle());
@@ -311,11 +397,14 @@ public class MovieListFragment extends Fragment {
                         }
 
                         movieList.addAll(newMovies);
-                        movieListAdapter.notifyDataSetChanged();
+                        //movieListAdapter.notifyDataSetChanged();
                         progressBar.setVisibility(View.GONE);
 
                         // set loading status to false after loading data for next time loading
                         isLoading = false;
+
+                        // filter and sort movie list after loading data from API
+                        filterAndSortMovieList();
 
                         Log.d("check", "onResponse: " + movieList.size());
                         Log.d("check", "onResponse: " + movieList.get(0).getTitle());
@@ -373,11 +462,14 @@ public class MovieListFragment extends Fragment {
                         }
 
                         movieList.addAll(newMovies);
-                        movieListAdapter.notifyDataSetChanged();
+                        //movieListAdapter.notifyDataSetChanged();
                         progressBar.setVisibility(View.GONE);
 
                         // set loading status to false after loading data for next time loading
                         isLoading = false;
+
+                        // filter and sort movie list after loading data from API
+                        filterAndSortMovieList();
 
                         Log.d("check", "onResponse: " + movieList.size());
                         Log.d("check", "onResponse: " + movieList.get(0).getTitle());
@@ -397,12 +489,12 @@ public class MovieListFragment extends Fragment {
 
 
     /**
-     * Load movies by type
+     * Load movies by category
      */
-    public void loadMovies(String movieType) {
+    public void loadMovieListByCategory(String category) {
         currentPage = 1;
         movieList.clear();
-        switch (movieType) {
+        switch (category) {
             case "popular":
                 getPopularMovieList(currentPage);
                 break;
@@ -426,7 +518,7 @@ public class MovieListFragment extends Fragment {
 
     /**
      * Change layout of movie list
-     * @param isGridLayout
+     * @param isGridLayout: true if grid layout, false if linear layout
      */
     public void changeLayout(boolean isGridLayout) {
         if (isGridLayout) {
@@ -440,7 +532,7 @@ public class MovieListFragment extends Fragment {
 
     /**
      * Update movie list show
-     * @param movie
+     * @param movie: movie to update favorite status
      */
     public void updateMovieListShow(Movie movie) {
         for (int i = 0; i < movieList.size(); i++) {
@@ -451,4 +543,5 @@ public class MovieListFragment extends Fragment {
             }
         }
     }
+
 }

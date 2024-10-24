@@ -81,9 +81,13 @@ public class AlarmReceiver extends BroadcastReceiver {
                     // push notification
                     pushNotification(context, movie);
 
-                    // callback Main Activity to update the list
-                    Intent updateIntent = new Intent("com.example.ojtbadaassignment14.UPDATE_REMINDER_LIST");
+                    // send for receiver in MainActivity to update the reminder list in navigation view after notification is pushed
+                    Intent updateIntent = new Intent("com.example.ojtbadaassignment14.UPDATE_REMINDER_LIST_MAIN");
                     context.sendBroadcast(updateIntent);
+
+                    // send for receiver in AllReminderFragment to update the reminder list in recycler view after notification is pushed
+                    Intent updateIntent1 = new Intent("com.example.ojtbadaassignment14.UPDATE_REMINDER_LIST_FRAGMENT");
+                    context.sendBroadcast(updateIntent1);
 
                 } else {
                     Log.d("check", "Failed to fetch movie details");
@@ -117,7 +121,7 @@ public class AlarmReceiver extends BroadcastReceiver {
                 .setContentIntent(pendingIntent)
                 .build();
 
-        notificationManager.notify(1234, notification);
+        notificationManager.notify((int) movieId, notification);
     }
 
 }

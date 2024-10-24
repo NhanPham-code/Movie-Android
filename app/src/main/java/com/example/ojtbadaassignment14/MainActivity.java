@@ -120,7 +120,7 @@ public class MainActivity extends AppCompatActivity implements CallbackService {
 
 
         // Register the receiver to update reminder list in navigation view after deleting a reminder from alarmReceiver
-        IntentFilter filter = new IntentFilter("com.example.ojtbadaassignment14.UPDATE_REMINDER_LIST");
+        IntentFilter filter = new IntentFilter("com.example.ojtbadaassignment14.UPDATE_REMINDER_LIST_MAIN");
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             registerReceiver(updateReminderListReceiver, filter, Context.RECEIVER_EXPORTED);
         }
@@ -155,7 +155,7 @@ public class MainActivity extends AppCompatActivity implements CallbackService {
         }, 1000);
 
         // get intent from all reminder adapter to show movie detail
-        getIntentFromAllReminderAdapter();
+        getIntentFromAllReminderAdapterToShowMovieDetail();
 
     }
 
@@ -206,14 +206,25 @@ public class MainActivity extends AppCompatActivity implements CallbackService {
         });
     }
 
+
     /**
      * Get intent from all reminder adapter to show movie detail after clicking on reminder
      */
-    private void getIntentFromAllReminderAdapter() {
+    private void getIntentFromAllReminderAdapterToShowMovieDetail() {
         Intent intent = getIntent();
         if (intent != null) {
             Movie movie = intent.getParcelableExtra("movie");
             if (movie != null) {
+
+                // check if movie is favorite from SQLite
+                List<Movie> favoriteMovies = databaseHelper.getAllFavoriteMovies();
+                for(Movie m : favoriteMovies) {
+                    if (m.getId() == movie.getId()) {
+                        movie.setIsFavorite(1);
+                        break;
+                    }
+                }
+
                 // Show movie detail fragment
                 new Handler().postDelayed(new Runnable() {
                     @Override
@@ -227,7 +238,7 @@ public class MainActivity extends AppCompatActivity implements CallbackService {
 
 
     /**
-     * Broadcast receiver to update reminder list in navigation view after deleting a reminder
+     * Broadcast receiver to update reminder list in navigation view after notify from alarmReceiver in Main Activity
      */
     private final BroadcastReceiver updateReminderListReceiver = new BroadcastReceiver() {
         @Override
@@ -253,7 +264,7 @@ public class MainActivity extends AppCompatActivity implements CallbackService {
         // set up RecyclerView with ReminderAdapter
         View headerOfNavigationView = navigationView.getHeaderView(0);
         RecyclerView rvReminder = headerOfNavigationView.findViewById(R.id.rvReminder);
-        NavReminderAdapter reminderAdapter = new NavReminderAdapter(nearestReminders, databaseHelper);
+        NavReminderAdapter reminderAdapter = new NavReminderAdapter(nearestReminders);
         rvReminder.setLayoutManager(new LinearLayoutManager(this));
         rvReminder.setAdapter(reminderAdapter);
     }
@@ -360,13 +371,22 @@ public class MainActivity extends AppCompatActivity implements CallbackService {
                         break;
                     case 1: // Favorite List
                         toolbar.setTitle("");
+                        btnChangeLayout.setVisibility(View.GONE);
                         edtSearch.setVisibility(View.VISIBLE);
                         edtSearch.setText("Favourite");
                         btnSearch.setVisibility(View.VISIBLE);
-                        btnChangeLayout.setVisibility(View.GONE);
                         break;
                     case 2: // Setting
-
+                        toolbar.setTitle("Setting");
+                        btnChangeLayout.setVisibility(View.GONE);
+                        edtSearch.setVisibility(View.GONE);
+                        btnSearch.setVisibility(View.GONE);
+                        break;
+                    case 3: // About
+                        toolbar.setTitle("About");
+                        btnChangeLayout.setVisibility(View.GONE);
+                        edtSearch.setVisibility(View.GONE);
+                        btnSearch.setVisibility(View.GONE);
                         break;
                 }
             }
@@ -411,11 +431,12 @@ public class MainActivity extends AppCompatActivity implements CallbackService {
         commonFragment = new CommonFragment();// use common fragment class to handle fragment transaction
         commonFragment.setCallbackService(MainActivity.this);
         commonFragment.setMovieListFragment(movieListFragment);
+
         favoriteListFragment = FavoriteListFragment.newInstance();
         favoriteListFragment.setCallbackService(MainActivity.this);
 
-        settingFragment = new SettingFragment();
-        aboutFragment = new AboutFragment();
+        settingFragment = SettingFragment.newInstance();
+        aboutFragment = AboutFragment.newInstance();
 
         fragmentList = new ArrayList<>();
         fragmentList.add(commonFragment); // add common fragment to handle fragment transaction
@@ -482,13 +503,13 @@ public class MainActivity extends AppCompatActivity implements CallbackService {
     public boolean onOptionsItemSelected(@NonNull MenuItem item) {
         int itemId = item.getItemId();
         if (itemId == R.id.menu_movie_popular) {
-            movieListFragment.loadMovies("popular");
+            movieListFragment.loadMovieListByCategory("popular");
         } else if (itemId == R.id.menu_movie_top_rated) {
-            movieListFragment.loadMovies("top_rated");
+            movieListFragment.loadMovieListByCategory("top_rated");
         } else if (itemId == R.id.menu_movie_upcoming) {
-            movieListFragment.loadMovies("upcoming");
+            movieListFragment.loadMovieListByCategory("upcoming");
         } else if (itemId == R.id.menu_movie_now_playing) {
-            movieListFragment.loadMovies("now_playing");
+            movieListFragment.loadMovieListByCategory("now_playing");
         }
         return super.onOptionsItemSelected(item);
     }
@@ -516,7 +537,7 @@ public class MainActivity extends AppCompatActivity implements CallbackService {
         movieDetailFragment = MovieDetailFragment.newInstance(movie);
         movieDetailFragment.setCallbackService(MainActivity.this);
 
-        // Add fragment to CommonFragment if it's attached
+        // Add detail fragment to CommonFragment if it's attached
         if (commonFragment.isAdded()) {
             commonFragment.setMovieDetailFragment(movieDetailFragment);
             commonFragment.showDetailFragment();

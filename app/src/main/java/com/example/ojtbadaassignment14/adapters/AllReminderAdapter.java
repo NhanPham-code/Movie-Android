@@ -1,6 +1,12 @@
 package com.example.ojtbadaassignment14.adapters;
 
+import android.app.AlarmManager;
+import android.app.PendingIntent;
+import android.content.BroadcastReceiver;
+import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
+import android.os.Build;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -21,6 +27,7 @@ import com.example.ojtbadaassignment14.api.RetrofitClient;
 import com.example.ojtbadaassignment14.db.DatabaseHelper;
 import com.example.ojtbadaassignment14.models.Movie;
 import com.example.ojtbadaassignment14.models.Reminder;
+import com.example.ojtbadaassignment14.receivers.AlarmReceiver;
 import com.example.ojtbadaassignment14.services.CallbackService;
 import com.squareup.picasso.Picasso;
 
@@ -94,12 +101,23 @@ public class AllReminderAdapter extends RecyclerView.Adapter<AllReminderAdapter.
                             .setTitle("Delete Reminder")
                             .setMessage("Are you sure you want to delete this reminder?")
                             .setPositiveButton("Delete", (dialog, which) -> {
+
                                 // Delete reminder from database
                                 databaseHelper.removeReminder(reminder.getId());
 
-                                // Remove reminder from list
+                                // Remove reminder from list and notify adapter
                                 reminderList.remove(position);
                                 notifyItemRemoved(position);
+
+                                // cancel alarm
+                                AlarmManager alarmManager = (AlarmManager) holder.itemView.getContext().getSystemService(Context.ALARM_SERVICE);
+                                Intent intent = new Intent(holder.itemView.getContext(), AlarmReceiver.class);
+                                PendingIntent pendingIntent = PendingIntent.getBroadcast(holder.itemView.getContext(), (int) reminder.getId(),
+                                        intent, PendingIntent.FLAG_IMMUTABLE | PendingIntent.FLAG_UPDATE_CURRENT);
+                                if (alarmManager != null) {
+                                    alarmManager.cancel(pendingIntent);
+                                }
+
                             })
                             .setNegativeButton("Cancel", null)
                             .show();
@@ -134,6 +152,7 @@ public class AllReminderAdapter extends RecyclerView.Adapter<AllReminderAdapter.
                 }
             });
         });
+
     }
 
     @Override

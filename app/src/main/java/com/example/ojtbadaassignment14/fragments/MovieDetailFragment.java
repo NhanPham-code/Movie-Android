@@ -230,7 +230,7 @@ public class MovieDetailFragment extends Fragment {
                                 // Set alarm with id of reminder to delete reminder later
                                 scheduleAlarm(newReminder);
 
-                                // Callback Main activity update reminder list
+                                // Callback Main activity update reminder list after add reminder
                                 callbackService.updateReminderList();
 
                                 Toast.makeText(getActivity(), "Reminder set successfully", Toast.LENGTH_SHORT).show();

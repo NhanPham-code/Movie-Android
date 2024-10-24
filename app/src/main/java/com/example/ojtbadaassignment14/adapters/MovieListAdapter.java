@@ -55,13 +55,7 @@ public class MovieListAdapter extends RecyclerView.Adapter<MovieListAdapter.Movi
         holder.bind(movie);
 
         if(!isGridLayout) {
-            // set click listener for movie item
-            holder.itemView.setOnClickListener(v -> {
-                // callback MainActivity to show movie detail
-                callbackService.onShowMovieDetail(movie);
-            });
-
-            // set click listener for favorite icon
+            // set click listener for favorite icon in list layout
             holder.ivFavorite.setOnClickListener(v -> {
                 // callback MainActivity to add/remove favorite movie
                 callbackService.onFavoriteMovie(movie);

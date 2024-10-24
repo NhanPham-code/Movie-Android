@@ -28,11 +28,9 @@ import retrofit2.Response;
 public class NavReminderAdapter extends RecyclerView.Adapter<NavReminderAdapter.ReminderViewHolder> {
 
     private List<Reminder> reminderList;
-    private DatabaseHelper databaseHelper;
 
-    public NavReminderAdapter(List<Reminder> reminderList, DatabaseHelper databaseHelper) {
+    public NavReminderAdapter(List<Reminder> reminderList) {
         this.reminderList = reminderList;
-        this.databaseHelper = databaseHelper;
     }
 
     @NonNull
@@ -44,6 +42,7 @@ public class NavReminderAdapter extends RecyclerView.Adapter<NavReminderAdapter.
 
     @Override
     public void onBindViewHolder(@NonNull ReminderViewHolder holder, int position) {
+        // Get reminder in list
         Reminder reminder = reminderList.get(position);
 
         // Fetch movie details from API
