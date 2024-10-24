@@ -145,7 +145,6 @@ public class MovieListFragment extends Fragment {
      * Filter movie list by category, rating, release year, and sort by from user setting
      * and update movie list
      */
-    //BUG
     private void getMovieListByCategoryFromSharePreferences() {
         // Retrieve preferences
         SharedPreferences sharedPreferences = getActivity().getSharedPreferences("MoviePreferences", Context.MODE_PRIVATE);
@@ -169,6 +168,9 @@ public class MovieListFragment extends Fragment {
 
     }
 
+    /**
+     * Filter and sort movie list by rating, release year, and sort by from user setting
+     */
     private void filterAndSortMovieList() {
         SharedPreferences sharedPreferences = getActivity().getSharedPreferences("MoviePreferences", Context.MODE_PRIVATE);
         String rating = sharedPreferences.getString("rating", "0");

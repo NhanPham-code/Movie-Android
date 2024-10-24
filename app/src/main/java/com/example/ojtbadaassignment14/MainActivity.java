@@ -226,6 +226,7 @@ public class MainActivity extends AppCompatActivity implements CallbackService {
                 }
 
                 // Show movie detail fragment
+                // Delay 500ms to wait for common fragment attached to activity before show movie detail fragment
                 new Handler().postDelayed(new Runnable() {
                     @Override
                     public void run() {

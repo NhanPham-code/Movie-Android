@@ -98,12 +98,12 @@ public class DatabaseHelper extends SQLiteOpenHelper {
     public List<Movie> searchFavoriteMovies(String search) {
         List<Movie> movieList = new ArrayList<>();
         SQLiteDatabase db = this.getReadableDatabase();
-        String queryDefault = "SELECT * FROM " + MovieContract.MovieEntry.TABLE_MOVIES + " WHERE " + MovieContract.MovieEntry.COLUMN_TITLE + " LIKE ?";
+        String queryDefault = "SELECT * FROM " + MovieContract.MovieEntry.TABLE_MOVIES;
         String querySearchKey = "SELECT * FROM " + MovieContract.MovieEntry.TABLE_MOVIES + " WHERE " + MovieContract.MovieEntry.COLUMN_TITLE + " LIKE ?";
 
         Cursor cursor;
         if(search.isEmpty()){
-            cursor = db.rawQuery(queryDefault, new String[]{"%" + search + "%"});
+            cursor = db.rawQuery(queryDefault, null);
         } else {
             cursor = db.rawQuery(querySearchKey, new String[]{"%" + search + "%"});
         }

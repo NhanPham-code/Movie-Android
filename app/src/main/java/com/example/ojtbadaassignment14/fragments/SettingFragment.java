@@ -12,8 +12,11 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.SeekBar;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.example.ojtbadaassignment14.R;
+
+import java.util.Calendar;
 
 public class SettingFragment extends Fragment {
 
@@ -77,7 +80,7 @@ public class SettingFragment extends Fragment {
         String[] categories = {"Popular", "Top Rated", "Upcoming", "Now Playing"};
         AlertDialog.Builder builder = new AlertDialog.Builder(getContext());
         builder.setTitle("Choose Category")
-                .setItems(categories, (dialog, which) -> {
+                .setSingleChoiceItems(categories, -1, (dialog, which) -> {
                     choiceCategory.setText(categories[which]);
                     savePreference("category", categories[which]);
                 })
@@ -122,8 +125,30 @@ public class SettingFragment extends Fragment {
 
         builder.setPositiveButton("OK", (dialog, which) -> {
             TextView input = customLayout.findViewById(R.id.input);
-            choiceReleaseYear.setText(input.getText().toString());
-            savePreference("releaseYear", input.getText().toString());
+            String yearText = input.getText().toString();
+
+            // check if year is empty set default to 1970
+            if (yearText.isEmpty()) {
+                yearText = "1970"; // default year
+                Toast.makeText(getContext(), "Year is empty! (SET DEFAULT YEAR)", Toast.LENGTH_SHORT).show();
+            }
+
+            // check if year is invalid format (length)
+            if(yearText.length() != 4) {
+                Toast.makeText(getContext(), "Year is invalid format! (Ex: YYYY)", Toast.LENGTH_SHORT).show();
+                return;
+            }
+
+            // check if year is invalid (future)
+            int year = Integer.parseInt(yearText);
+            int currentYear = Calendar.getInstance().get(Calendar.YEAR);
+            if (year > currentYear) {
+                Toast.makeText(getContext(), "Year cannot be in the future", Toast.LENGTH_SHORT).show();
+                return;
+            }
+
+            choiceReleaseYear.setText(yearText);
+            savePreference("releaseYear", yearText);
         });
         builder.setNegativeButton("Cancel", null);
         builder.show();
@@ -133,7 +158,7 @@ public class SettingFragment extends Fragment {
         String[] sortByOptions = {"Release Year", "Rating"};
         AlertDialog.Builder builder = new AlertDialog.Builder(getContext());
         builder.setTitle("Sort By")
-                .setItems(sortByOptions, (dialog, which) -> {
+                .setSingleChoiceItems(sortByOptions, -1, (dialog, which) -> {
                     choiceSortBy.setText(sortByOptions[which]);
                     savePreference("sortBy", sortByOptions[which]);
                 })
