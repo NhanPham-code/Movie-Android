@@ -68,7 +68,7 @@ public class AlarmReceiver extends BroadcastReceiver {
 
     private void fetchMovieDetailsAndPushNotification(Context context, long movieId) {
         MovieApiService apiService = RetrofitClient.getInstance().getMovieApiService();
-        Call<Movie> call = apiService.getMovieDetail(movieId, RetrofitClient.API_KEY);
+        Call<Movie> call = apiService.getMovieDetail(movieId);
         call.enqueue(new Callback<Movie>() {
             @Override
             public void onResponse(@NonNull Call<Movie> call, @NonNull Response<Movie> response) {

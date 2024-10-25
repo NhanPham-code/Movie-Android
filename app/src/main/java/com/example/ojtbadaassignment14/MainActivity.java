@@ -567,7 +567,7 @@ public class MainActivity extends AppCompatActivity implements CallbackService {
         // update movie favorite status
         movie.setIsFavorite(movie.getIsFavorite() == 0 ? 1 : 0);
 
-        // update movie list and favorite list
+        // update movie list fragment and favorite list fragment
         movieListFragment.updateMovieListShow(movie);
         favoriteListFragment.updateFavoriteList(movie);
 

@@ -47,7 +47,7 @@ public class NavReminderAdapter extends RecyclerView.Adapter<NavReminderAdapter.
 
         // Fetch movie details from API
         MovieApiService apiService = RetrofitClient.getInstance().getMovieApiService();
-        Call<Movie> call = apiService.getMovieDetail(reminder.getMovieId(), RetrofitClient.API_KEY);
+        Call<Movie> call = apiService.getMovieDetail(reminder.getMovieId());
         call.enqueue(new Callback<Movie>() {
             @Override
             public void onResponse(@NonNull Call<Movie> call, @NonNull Response<Movie> response) {

@@ -272,7 +272,7 @@ public class MovieDetailFragment extends Fragment {
      */
     private void fetchMovieCast() {
         MovieApiService apiService = RetrofitClient.getInstance().getMovieApiService();
-        Call<CastOfMovie> call = apiService.getMovieCast(movie.getId(), RetrofitClient.API_KEY);
+        Call<CastOfMovie> call = apiService.getMovieCast(movie.getId());
         call.enqueue(new Callback<CastOfMovie>() {
             @Override
             public void onResponse(@NonNull Call<CastOfMovie> call, @NonNull Response<CastOfMovie> response) {

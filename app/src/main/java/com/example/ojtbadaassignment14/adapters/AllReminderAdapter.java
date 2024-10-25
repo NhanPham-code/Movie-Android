@@ -64,7 +64,7 @@ public class AllReminderAdapter extends RecyclerView.Adapter<AllReminderAdapter.
 
         // Call API to get movie details
         MovieApiService apiService = RetrofitClient.getInstance().getMovieApiService();
-        Call<Movie> call = apiService.getMovieDetail(reminder.getMovieId(), RetrofitClient.API_KEY);
+        Call<Movie> call = apiService.getMovieDetail(reminder.getMovieId());
         call.enqueue(new Callback<Movie>() {
             @Override
             public void onResponse(@NonNull Call<Movie> call, @NonNull Response<Movie> response) {
@@ -133,7 +133,7 @@ public class AllReminderAdapter extends RecyclerView.Adapter<AllReminderAdapter.
         holder.itemView.setOnClickListener(view -> {
             // Call API to get movie details
             MovieApiService apiService1 = RetrofitClient.getInstance().getMovieApiService();
-            Call<Movie> call1 = apiService1.getMovieDetail(reminder.getMovieId(), RetrofitClient.API_KEY);
+            Call<Movie> call1 = apiService1.getMovieDetail(reminder.getMovieId());
             call1.enqueue(new Callback<Movie>() {
                 @Override
                 public void onResponse(@NonNull Call<Movie> call, @NonNull Response<Movie> response) {

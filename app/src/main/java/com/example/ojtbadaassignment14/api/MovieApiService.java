@@ -16,21 +16,21 @@ public interface MovieApiService {
 
     // cast: api.themoviedb.org/3/movie/{movieId}/credits?api_key=e7631ffcb8e766993e5ec0c1f4245f93
 
-    @GET("movie/popular")
-    Call<Page> getPopularMovies(@Query("api_key") String apiKey, @Query("page") int page);
+    @GET("movie/popular?api_key=e7631ffcb8e766993e5ec0c1f4245f93")
+    Call<Page> getPopularMovies(@Query("page") int page);
 
-    @GET("movie/top_rated")
-    Call<Page> getTopRatedMovies(@Query("api_key") String apiKey, @Query("page") int page);
+    @GET("movie/top_rated?api_key=e7631ffcb8e766993e5ec0c1f4245f93")
+    Call<Page> getTopRatedMovies(@Query("page") int page);
 
-    @GET("movie/upcoming")
-    Call<Page> getUpcomingMovies(@Query("api_key") String apiKey, @Query("page") int page);
+    @GET("movie/upcoming?api_key=e7631ffcb8e766993e5ec0c1f4245f93")
+    Call<Page> getUpcomingMovies(@Query("page") int page);
 
-    @GET("movie/now_playing")
-    Call<Page> getNowPlayingMovies(@Query("api_key" ) String apiKey, @Query("page") int page);
+    @GET("movie/now_playing?api_key=e7631ffcb8e766993e5ec0c1f4245f93")
+    Call<Page> getNowPlayingMovies(@Query("page") int page);
 
-    @GET("movie/{movieId}/credits")
-    Call<CastOfMovie> getMovieCast(@Path("movieId") long movieId, @Query("api_key") String apiKey);
+    @GET("movie/{movieId}/credits?api_key=e7631ffcb8e766993e5ec0c1f4245f93")
+    Call<CastOfMovie> getMovieCast(@Path("movieId") long movieId);
 
-    @GET("movie/{movieId}")
-    Call<Movie> getMovieDetail(@Path("movieId") long movieId, @Query("api_key") String apiKey);
+    @GET("movie/{movieId}?api_key=e7631ffcb8e766993e5ec0c1f4245f93")
+    Call<Movie> getMovieDetail(@Path("movieId") long movieId);
 }
