@@ -5,6 +5,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
+import android.widget.ProgressBar;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
@@ -19,13 +20,17 @@ import com.squareup.picasso.Picasso;
 
 import java.util.List;
 
-public class MovieListAdapter extends RecyclerView.Adapter<MovieListAdapter.MovieViewHolder> {
+public class MovieListAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
+
+    private static final int VIEW_TYPE_ITEM = 0;
+    private static final int VIEW_TYPE_LOADING = 1;
 
     // interface
     CallbackService callbackService;
 
     private List<Movie> movieList;
     private boolean isGridLayout = false; // default is list layout
+    private boolean isLoading = false;
 
     Picasso picasso;
 
@@ -34,57 +39,89 @@ public class MovieListAdapter extends RecyclerView.Adapter<MovieListAdapter.Movi
         this.callbackService = callbackService;
     }
 
+    @Override
+    public int getItemViewType(int position) {
+        return position == movieList.size() ? VIEW_TYPE_LOADING : VIEW_TYPE_ITEM;
+    }
+
     @NonNull
     @Override
-    public MovieViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
-        View view;
-        if (isGridLayout) {
-            view = LayoutInflater.from(parent.getContext()).inflate(R.layout.item_movie_grid_type, parent, false);
+    public RecyclerView.ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
+        if (viewType == VIEW_TYPE_LOADING) {
+            View view = LayoutInflater.from(parent.getContext()).inflate(R.layout.item_loading, parent, false);
+            return new LoadingViewHolder(view);
         } else {
-            view = LayoutInflater.from(parent.getContext()).inflate(R.layout.item_movie_list_type, parent, false);
+            View view;
+            if (isGridLayout) {
+                view = LayoutInflater.from(parent.getContext()).inflate(R.layout.item_movie_grid_type, parent, false);
+            } else {
+                view = LayoutInflater.from(parent.getContext()).inflate(R.layout.item_movie_list_type, parent, false);
+            }
+            return new MovieViewHolder(view, isGridLayout);
         }
-        return new MovieViewHolder(view, isGridLayout);
     }
 
     @Override
-    public void onBindViewHolder(@NonNull MovieViewHolder holder, int position) {
-        // get movie at position
-        Movie movie = movieList.get(position);
+    public void onBindViewHolder(@NonNull RecyclerView.ViewHolder holder, int position) {
+        if(holder instanceof MovieViewHolder) {
+            // get movie at position
+            Movie movie = movieList.get(position);
 
-        // bind movie data to view holder
-        holder.bind(movie);
+            MovieViewHolder movieViewHolder = (MovieViewHolder) holder;
 
-        if(!isGridLayout) {
-            // set click listener for favorite icon in list layout
-            holder.ivFavorite.setOnClickListener(v -> {
-                // callback MainActivity to add/remove favorite movie
-                callbackService.onFavoriteMovie(movie);
+            // bind movie data to view holder
+            movieViewHolder.bind(movie);
+
+            if(!isGridLayout) {
+                // set click listener for favorite icon in list layout
+                movieViewHolder.ivFavorite.setOnClickListener(v -> {
+                    // callback MainActivity to add/remove favorite movie
+                    callbackService.onFavoriteMovie(movie);
+                });
+            }
+
+            // set click listener for item move to detail
+            movieViewHolder.itemView.setOnClickListener(v -> {
+                // callback MainActivity to show movie detail
+                callbackService.onShowMovieDetail(movie);
             });
-        }
 
-        // set click listener for item move to detail
-        holder.itemView.setOnClickListener(v -> {
-            // callback MainActivity to show movie detail
-            callbackService.onShowMovieDetail(movie);
-        });
+        } else if (holder instanceof LoadingViewHolder) {
+            LoadingViewHolder loadingViewHolder = (LoadingViewHolder) holder;
+            loadingViewHolder.progressBar.setIndeterminate(true);
+        }
 
     }
 
     @Override
     public int getItemCount() {
         Log.d("check", "getItemCount: " + movieList.size());
-        return movieList.size();
+        return isLoading ? movieList.size() + 1 : movieList.size();
     }
 
     /**
      * Set grid layout
-     * @param isGridLayout
+     * @param isGridLayout: true if grid layout, false if list layout
      */
     public void setGridLayout(boolean isGridLayout) {
         this.isGridLayout = isGridLayout;
         notifyDataSetChanged();
     }
 
+    /**
+     * Set loading state
+     * @param isLoading: true if loading, false if not
+     */
+    public void setLoading(boolean isLoading) {
+        if (this.isLoading != isLoading) {
+            this.isLoading = isLoading;
+            if (isLoading) {
+                notifyItemInserted(movieList.size());
+            } else {
+                notifyItemRemoved(movieList.size());
+            }
+        }
+    }
 
     public class MovieViewHolder extends RecyclerView.ViewHolder {
 
@@ -157,6 +194,14 @@ public class MovieListAdapter extends RecyclerView.Adapter<MovieListAdapter.Movi
                 }
             }
         }
+    }
 
+    public class LoadingViewHolder extends RecyclerView.ViewHolder {
+        ProgressBar progressBar;
+
+        public LoadingViewHolder(@NonNull View itemView) {
+            super(itemView);
+            progressBar = itemView.findViewById(R.id.loading_more_progress_bar);
+        }
     }
 }

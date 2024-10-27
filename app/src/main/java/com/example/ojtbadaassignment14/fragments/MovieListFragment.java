@@ -109,8 +109,11 @@ public class MovieListFragment extends Fragment {
                     int lastVisibleItem = linearLayoutManager.findLastVisibleItemPosition();
                     if (lastVisibleItem == totalItemCount - 1 && !isLoadingMoreData) {
                         Log.d("checked", "onScrolled: load more data, totalItemCount: " + totalItemCount + ", lastVisibleItem: " + lastVisibleItem);
-                        // set loading status to true
+
+                        // set loading status to true to prevent loading more data when the end of the list is near
                         isLoadingMoreData = true;
+
+                        movieListAdapter.setLoading(true);
 
                         currentPage++;
 
@@ -125,6 +128,8 @@ public class MovieListFragment extends Fragment {
                         Log.d("checked", "onScrolled: load more data, totalItemCount: " + totalItemCount + ", lastVisibleItem: " + lastVisibleItem);
 
                         isLoadingMoreData = true;
+
+                        movieListAdapter.setLoading(true);
 
                         currentPage++;
 
@@ -252,10 +257,12 @@ public class MovieListFragment extends Fragment {
             int startPosition = movieList.size();
             Log.d("checked", "filterAndSortMovieList: movieList size: " + movieList.size() + "filteredMovies size: " + filteredMovies.size());
             movieList.addAll(filteredMovies);
+            movieListAdapter.setLoading(false);
             movieListAdapter.notifyItemRangeInserted(startPosition, movieList.size());
         } else {
             movieList.clear();
             movieList.addAll(filteredMovies);
+            movieListAdapter.setLoading(false);
             movieListAdapter.notifyDataSetChanged();
         }
     }
