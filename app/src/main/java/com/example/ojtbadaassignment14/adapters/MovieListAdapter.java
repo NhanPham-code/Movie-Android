@@ -30,7 +30,7 @@ public class MovieListAdapter extends RecyclerView.Adapter<RecyclerView.ViewHold
 
     private List<Movie> movieList;
     private boolean isGridLayout = false; // default is list layout
-    private boolean isLoading = false;
+    private boolean isLoading = false; // default is false to display movie list only, true to display loading progress bar while loading more movies
 
     Picasso picasso;
 
