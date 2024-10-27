@@ -76,6 +76,10 @@ public class MovieListAdapter extends RecyclerView.Adapter<MovieListAdapter.Movi
         return movieList.size();
     }
 
+    /**
+     * Set grid layout
+     * @param isGridLayout
+     */
     public void setGridLayout(boolean isGridLayout) {
         this.isGridLayout = isGridLayout;
         notifyDataSetChanged();

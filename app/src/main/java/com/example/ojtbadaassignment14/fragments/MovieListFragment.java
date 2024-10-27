@@ -107,8 +107,8 @@ public class MovieListFragment extends Fragment {
                     LinearLayoutManager linearLayoutManager = (LinearLayoutManager) layoutManager;
                     int totalItemCount = linearLayoutManager.getItemCount();
                     int lastVisibleItem = linearLayoutManager.findLastVisibleItemPosition();
-                    if (lastVisibleItem == totalItemCount - 1) {
-                        Log.d("checked", "onScrolled: load more data");
+                    if (lastVisibleItem == totalItemCount - 1 && !isLoadingMoreData) {
+                        Log.d("checked", "onScrolled: load more data, totalItemCount: " + totalItemCount + ", lastVisibleItem: " + lastVisibleItem);
                         // set loading status to true
                         isLoadingMoreData = true;
 
@@ -121,8 +121,8 @@ public class MovieListFragment extends Fragment {
                     GridLayoutManager gridLayoutManager = (GridLayoutManager) layoutManager;
                     int totalItemCount = gridLayoutManager.getItemCount();
                     int lastVisibleItem = gridLayoutManager.findLastVisibleItemPosition();
-                    if (!isLoadingMoreData && lastVisibleItem == totalItemCount - 1) {
-                        Log.d("checked", "onScrolled: load more data");
+                    if (lastVisibleItem == totalItemCount - 1 && !isLoadingMoreData) {
+                        Log.d("checked", "onScrolled: load more data, totalItemCount: " + totalItemCount + ", lastVisibleItem: " + lastVisibleItem);
 
                         isLoadingMoreData = true;
 
@@ -222,37 +222,6 @@ public class MovieListFragment extends Fragment {
 
     }
 
-    /**
-     * Load more data to the existing movie list
-     * @param newMovieList: new movie list to append to the existing list
-     */
-    private void loadMoreData(List<Movie> newMovieList) {
-        String rating = sharedPreferences.getString("rating", "0");
-        String releaseYear = sharedPreferences.getString("releaseYear", "1970");
-        String sortBy = sharedPreferences.getString("sortBy", "Release Year");
-
-        // filter movie list by rating, release year
-        List<Movie> filteredMovies = new ArrayList<>();
-        for (Movie movie : newMovieList) {
-            if (movie.getVoteAverage() >= Double.parseDouble(rating) &&
-                    Integer.parseInt(movie.getReleaseDate().substring(0, 4)) >= Integer.parseInt(releaseYear)) {
-                filteredMovies.add(movie);
-            }
-        }
-
-        // sort movie list
-        if (sortBy.equals("Release Year")) {
-            filteredMovies.sort((o1, o2) -> o2.getReleaseDate().compareTo(o1.getReleaseDate()));
-        } else {
-            filteredMovies.sort((o1, o2) -> Double.compare(o2.getVoteAverage(), o1.getVoteAverage()));
-        }
-
-        // append new movies to the existing list
-        int startPosition = movieList.size();
-        movieList.addAll(filteredMovies);
-        movieListAdapter.notifyItemRangeInserted(startPosition, filteredMovies.size());
-    }
-
 
     /**
      * Filter and sort movie list based on user preferences
@@ -279,10 +248,16 @@ public class MovieListFragment extends Fragment {
             filteredMovies.sort((o1, o2) -> Double.compare(o2.getVoteAverage(), o1.getVoteAverage()));
         }
 
-        // update movie list
-        movieList.clear();
-        movieList.addAll(filteredMovies);
-        movieListAdapter.notifyDataSetChanged();
+        if(isLoadingMoreData) {
+            int startPosition = movieList.size();
+            Log.d("checked", "filterAndSortMovieList: movieList size: " + movieList.size() + "filteredMovies size: " + filteredMovies.size());
+            movieList.addAll(filteredMovies);
+            movieListAdapter.notifyItemRangeInserted(startPosition, movieList.size());
+        } else {
+            movieList.clear();
+            movieList.addAll(filteredMovies);
+            movieListAdapter.notifyDataSetChanged();
+        }
     }
 
     /**
@@ -323,18 +298,12 @@ public class MovieListFragment extends Fragment {
                             }
                         }
 
-                        // loading more data or sort and filter movie list
-                        if (isLoadingMoreData) {
-                            loadMoreData(newMovies);
-                        } else {
-                            filterAndSortMovieList(newMovies);
-                        }
+                        // filter and sort movie list
+                        filterAndSortMovieList(newMovies);
 
                         progressBar.setVisibility(View.GONE);
 
-
-                        Log.d("check", "onResponse: " + movieList.size());
-                        Log.d("check", "onResponse: " + movieList.get(0).getTitle());
+                        isLoadingMoreData = false;
 
                     } else {
                         showError();
@@ -388,18 +357,11 @@ public class MovieListFragment extends Fragment {
                             }
                         }
 
-                        // loading more data or sort and filter movie list
-                        if (isLoadingMoreData) {
-                            loadMoreData(newMovies);
-                        } else {
-                            filterAndSortMovieList(newMovies);
-                        }
+                        filterAndSortMovieList(newMovies);
 
                         progressBar.setVisibility(View.GONE);
 
-                        Log.d("check", "onResponse: " + movieList.size());
-                        Log.d("check", "onResponse: " + movieList.get(0).getTitle());
-
+                        isLoadingMoreData = false;
                     } else {
                         showError();
                     }
@@ -452,19 +414,11 @@ public class MovieListFragment extends Fragment {
                             }
                         }
 
-                        // loading more data or sort and filter movie list
-                        if (isLoadingMoreData) {
-                            loadMoreData(newMovies);
-                        } else {
-                            filterAndSortMovieList(newMovies);
-                        }
+                        filterAndSortMovieList(newMovies);
 
                         progressBar.setVisibility(View.GONE);
 
-
-                        Log.d("check", "onResponse: " + movieList.size());
-                        Log.d("check", "onResponse: " + movieList.get(0).getTitle());
-
+                        isLoadingMoreData = false;
                     } else {
                         showError();
                     }
@@ -517,19 +471,11 @@ public class MovieListFragment extends Fragment {
                             }
                         }
 
-                        // loading more data or sort and filter movie list
-                        if (isLoadingMoreData) {
-                            loadMoreData(newMovies);
-                        } else {
-                            filterAndSortMovieList(newMovies);
-                        }
+                        filterAndSortMovieList(newMovies);
 
                         progressBar.setVisibility(View.GONE);
 
-
-                        Log.d("check", "onResponse: " + movieList.size());
-                        Log.d("check", "onResponse: " + movieList.get(0).getTitle());
-
+                        isLoadingMoreData = false;
                     } else {
                         showError();
                     }
