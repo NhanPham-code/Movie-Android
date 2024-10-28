@@ -212,21 +212,82 @@ public class MovieListFragment extends Fragment {
         // get movie list by category
         switch (category) {
             case "Popular":
-                getPopularMovieList(currentPage);
+                //getPopularMovieList(currentPage);
+                getMoviesByCategoryFromAPI("popular", currentPage);
                 break;
             case "Top Rated":
-                getTopRatedMovieList(currentPage);
+                //getTopRatedMovieList(currentPage);
+                getMoviesByCategoryFromAPI("top_rated", currentPage);
                 break;
             case "Upcoming":
-                getUpcomingMovieList(currentPage);
+                //getUpcomingMovieList(currentPage);
+                getMoviesByCategoryFromAPI("upcoming", currentPage);
                 break;
             case "Now Playing":
-                getNowPlayingMovieList(currentPage);
+                //getNowPlayingMovieList(currentPage);
+                getMoviesByCategoryFromAPI("now_playing", currentPage);
                 break;
         }
 
     }
 
+
+    /**
+     * Get movies by category from API
+     * @param category : category of movies
+     * @param currentPage : current page
+     */
+    public void getMoviesByCategoryFromAPI(String category, int currentPage) {
+
+        RetrofitClient retrofitClient = RetrofitClient.getInstance();
+        MovieApiService movieApiService = retrofitClient.getMovieApiService();
+
+        Call<Page> call = movieApiService.getMoviesByCategory(category, currentPage);
+        call.enqueue(new Callback<Page>() {
+            @SuppressLint("NotifyDataSetChanged")
+            @Override
+            public void onResponse(@NonNull Call<Page> call, @NonNull Response<Page> response) {
+                if (response.isSuccessful() && response.body() != null) {
+                    // get page
+                    page = response.body();
+
+                    // get movie list
+                    if (page != null) {
+                        List<Movie> newMovies = page.getResults();
+
+                        // Get favorite movies from the database
+                        DatabaseHelper dbHelper = new DatabaseHelper(getContext());
+                        List<Movie> favoriteMovies = dbHelper.getAllFavoriteMovies();
+
+                        // Update favorite status for each movie
+                        for (Movie movie : newMovies) {
+                            for (Movie favorite : favoriteMovies) {
+                                if (movie.getId() == favorite.getId()) {
+                                    movie.setIsFavorite(1);  // Set as favorite
+                                    break;
+                                }
+                            }
+                        }
+
+                        // filter and sort movie list
+                        filterAndSortMovieList(newMovies);
+
+                        progressBar.setVisibility(View.GONE);
+
+                        isLoadingMoreData = false;
+
+                    } else {
+                        showError();
+                    }
+                }
+            }
+
+            @Override
+            public void onFailure(@NonNull Call<Page> call, @NonNull Throwable t) {
+                showError();
+            }
+        });
+    }
 
     /**
      * Filter and sort movie list based on user preferences
@@ -267,254 +328,29 @@ public class MovieListFragment extends Fragment {
         }
     }
 
-    /**
-     * Get popular movies from API
-     */
-    public void getPopularMovieList(int currentPage) {
-
-        progressBar.setVisibility(View.VISIBLE);
-
-        // get movie list
-        RetrofitClient retrofitClient = RetrofitClient.getInstance();
-        MovieApiService movieApiService = retrofitClient.getMovieApiService();
-
-        Call<Page> call = movieApiService.getPopularMovies(currentPage);
-        call.enqueue(new Callback<Page>() {
-            @SuppressLint("NotifyDataSetChanged")
-            @Override
-            public void onResponse(@NonNull Call<Page> call, @NonNull Response<Page> response) {
-                if (response.isSuccessful() && response.body() != null) {
-                    // get page
-                    page = response.body();
-
-                    // get movie list
-                    if(page != null) {
-                        List<Movie> newMovies = page.getResults();
-
-                        // Get favorite movies from the database
-                        DatabaseHelper dbHelper = new DatabaseHelper(getContext());
-                        List<Movie> favoriteMovies = dbHelper.getAllFavoriteMovies();
-
-                        // Update favorite status for each movie
-                        for (Movie movie : newMovies) {
-                            for (Movie favorite : favoriteMovies) {
-                                if (movie.getId() == favorite.getId()) {
-                                    movie.setIsFavorite(1);  // Set as favorite
-                                    break;
-                                }
-                            }
-                        }
-
-                        // filter and sort movie list
-                        filterAndSortMovieList(newMovies);
-
-                        progressBar.setVisibility(View.GONE);
-
-                        isLoadingMoreData = false;
-
-                    } else {
-                        showError();
-                    }
-                }
-            }
-
-            @Override
-            public void onFailure(@NonNull Call<Page> call, @NonNull Throwable t) {
-                showError();
-            }
-        });
-    }
 
     /**
-     * Get top-rated movies from API
-     */
-    public void getTopRatedMovieList(int currentPage) {
-        // Hiển thị progress bar trong khi chờ tải dữ liệu
-        progressBar.setVisibility(View.VISIBLE);
-
-        // get movie list
-        RetrofitClient retrofitClient = RetrofitClient.getInstance();
-        MovieApiService movieApiService = retrofitClient.getMovieApiService();
-
-        Call<Page> call = movieApiService.getTopRatedMovies(currentPage);
-        call.enqueue(new Callback<Page>() {
-            @SuppressLint("NotifyDataSetChanged")
-            @Override
-            public void onResponse(@NonNull Call<Page> call, @NonNull Response<Page> response) {
-                if (response.isSuccessful() && response.body() != null) {
-                    // get page
-                    page = response.body();
-
-                    // get movie list
-                    if(page != null) {
-
-                        List<Movie> newMovies = page.getResults();
-
-                        // Get favorite movies from the database
-                        DatabaseHelper dbHelper = new DatabaseHelper(getContext());
-                        List<Movie> favoriteMovies = dbHelper.getAllFavoriteMovies();
-
-                        // Update favorite status for each movie
-                        for (Movie movie : newMovies) {
-                            for (Movie favorite : favoriteMovies) {
-                                if (movie.getId() == favorite.getId()) {
-                                    movie.setIsFavorite(1);  // Set as favorite
-                                    break;
-                                }
-                            }
-                        }
-
-                        filterAndSortMovieList(newMovies);
-
-                        progressBar.setVisibility(View.GONE);
-
-                        isLoadingMoreData = false;
-                    } else {
-                        showError();
-                    }
-                }
-            }
-
-            @Override
-            public void onFailure(@NonNull Call<Page> call, @NonNull Throwable t) {
-                showError();
-            }
-        });
-    }
-
-    /**
-     * Get upcoming movies from API
-     */
-    public void getUpcomingMovieList(int currentPage) {
-        // Hiển thị progress bar trong khi chờ tải dữ liệu
-        progressBar.setVisibility(View.VISIBLE);
-
-        // get movie list
-        RetrofitClient retrofitClient = RetrofitClient.getInstance();
-        MovieApiService movieApiService = retrofitClient.getMovieApiService();
-
-        Call<Page> call = movieApiService.getUpcomingMovies(currentPage);
-        call.enqueue(new Callback<Page>() {
-            @SuppressLint("NotifyDataSetChanged")
-            @Override
-            public void onResponse(@NonNull Call<Page> call, @NonNull Response<Page> response) {
-                if (response.isSuccessful() && response.body() != null) {
-                    // get page
-                    page = response.body();
-
-                    // get movie list
-                    if(page != null) {
-
-                        List<Movie> newMovies = page.getResults();
-
-                        // Get favorite movies from the database
-                        DatabaseHelper dbHelper = new DatabaseHelper(getContext());
-                        List<Movie> favoriteMovies = dbHelper.getAllFavoriteMovies();
-
-                        // Update favorite status for each movie
-                        for (Movie movie : newMovies) {
-                            for (Movie favorite : favoriteMovies) {
-                                if (movie.getId() == favorite.getId()) {
-                                    movie.setIsFavorite(1);  // Set as favorite
-                                    break;
-                                }
-                            }
-                        }
-
-                        filterAndSortMovieList(newMovies);
-
-                        progressBar.setVisibility(View.GONE);
-
-                        isLoadingMoreData = false;
-                    } else {
-                        showError();
-                    }
-                }
-            }
-
-            @Override
-            public void onFailure(@NonNull Call<Page> call, @NonNull Throwable t) {
-                showError();
-            }
-        });
-    }
-
-    /**
-     * Get now playing movies from API
-     */
-    public void getNowPlayingMovieList(int currentPage) {
-        // Hiển thị progress bar trong khi chờ tải dữ liệu
-        progressBar.setVisibility(View.VISIBLE);
-
-        // get movie list
-        RetrofitClient retrofitClient = RetrofitClient.getInstance();
-        MovieApiService movieApiService = retrofitClient.getMovieApiService();
-
-        Call<Page> call = movieApiService.getNowPlayingMovies(currentPage);
-        call.enqueue(new Callback<Page>() {
-            @SuppressLint("NotifyDataSetChanged")
-            @Override
-            public void onResponse(@NonNull Call<Page> call, @NonNull Response<Page> response) {
-                if (response.isSuccessful() && response.body() != null) {
-                    // get page
-                    page = response.body();
-
-                    // get movie list
-                    if(page != null) {
-
-                        List<Movie> newMovies = page.getResults();
-
-                        // Get favorite movies from the database
-                        DatabaseHelper dbHelper = new DatabaseHelper(getContext());
-                        List<Movie> favoriteMovies = dbHelper.getAllFavoriteMovies();
-
-                        // Update favorite status for each movie
-                        for (Movie movie : newMovies) {
-                            for (Movie favorite : favoriteMovies) {
-                                if (movie.getId() == favorite.getId()) {
-                                    movie.setIsFavorite(1);  // Set as favorite
-                                    break;
-                                }
-                            }
-                        }
-
-                        filterAndSortMovieList(newMovies);
-
-                        progressBar.setVisibility(View.GONE);
-
-                        isLoadingMoreData = false;
-                    } else {
-                        showError();
-                    }
-                }
-            }
-
-            @Override
-            public void onFailure(@NonNull Call<Page> call, @NonNull Throwable t) {
-                showError();
-            }
-        });
-    }
-
-
-    /**
-     * Load movies by category
+     * Load movies by category for option menu
      */
     public void loadMovieListByCategory(String category) {
         currentPage = 1;
         movieList.clear();
         switch (category) {
             case "popular":
-                getPopularMovieList(currentPage);
+                //getPopularMovieList(currentPage);
+                getMoviesByCategoryFromAPI("popular", currentPage);
                 break;
             case "top_rated":
-                getTopRatedMovieList(currentPage);
+                //getTopRatedMovieList(currentPage);
+                getMoviesByCategoryFromAPI("top_rated", currentPage);
                 break;
             case "upcoming":
-                getUpcomingMovieList(currentPage);
+                //getUpcomingMovieList(currentPage);
+                getMoviesByCategoryFromAPI("upcoming", currentPage);
                 break;
             case "now_playing":
-                getNowPlayingMovieList(currentPage);
+                //getNowPlayingMovieList(currentPage);
+                getMoviesByCategoryFromAPI("now_playing", currentPage);
                 break;
         }
         movieListAdapter.notifyDataSetChanged();

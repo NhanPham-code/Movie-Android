@@ -16,6 +16,9 @@ public interface MovieApiService {
 
     // cast: api.themoviedb.org/3/movie/{movieId}/credits?api_key=e7631ffcb8e766993e5ec0c1f4245f93
 
+    @GET("movie/{category}?api_key=e7631ffcb8e766993e5ec0c1f4245f93")
+    Call<Page> getMoviesByCategory(@Path("category") String category, @Query("page") int page);
+
     @GET("movie/popular?api_key=e7631ffcb8e766993e5ec0c1f4245f93")
     Call<Page> getPopularMovies(@Query("page") int page);
 
