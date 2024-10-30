@@ -1,8 +1,11 @@
 package com.example.ojtbadaassignment14.fragments;
 
+import android.content.SharedPreferences;
 import android.os.Bundle;
 
+import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
+import androidx.preference.PreferenceManager;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
@@ -36,6 +39,10 @@ public class FavoriteListFragment extends Fragment {
 
     private List<Movie> favoriteList;
 
+    // SharedPreferences and SharedPreferences listener
+    SharedPreferences sharedPreferences;
+    SharedPreferences.OnSharedPreferenceChangeListener listener;
+
     public FavoriteListFragment() {
         // Required empty public constructor
     }
@@ -52,6 +59,10 @@ public class FavoriteListFragment extends Fragment {
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         favoriteList = new ArrayList<>();
+
+        // SharedPreferences
+        sharedPreferences = PreferenceManager.getDefaultSharedPreferences(requireContext());
+        registerSharedPreferencesListener();
     }
 
     @Override
@@ -75,7 +86,50 @@ public class FavoriteListFragment extends Fragment {
         movieListAdapter = new MovieListAdapter(favoriteList, callbackService);
         recyclerView.setAdapter(movieListAdapter);
 
+        // Filter and sort favorite list based on shared preferences settings
+        filterAndSortFavoriteList();
+
         return view;
+    }
+
+
+    /**
+     * Register shared preferences change listener
+     */
+    private void registerSharedPreferencesListener() {
+        listener = (sharedPreferences, key) -> {
+            if(key != null) {
+                filterAndSortFavoriteList();
+
+                // callback to update badge count in main activity
+                callbackService.updateBadgeCount();
+            }
+        };
+        sharedPreferences.registerOnSharedPreferenceChangeListener(listener);
+    }
+
+    /**
+     * Filter and sort favorite list based on shared preferences settings
+     */
+    private void filterAndSortFavoriteList() {
+        String rating = sharedPreferences.getString("rating", "0");
+        String releaseYear = sharedPreferences.getString("releaseYear", "1970");
+        String sortBy = sharedPreferences.getString("sortBy", "Release Year");
+
+        List<Movie> filteredList = dbHelper.getAllFavoriteMovies();
+        filteredList.removeIf(movie -> movie.getVoteAverage() < Double.parseDouble(rating) ||
+                Integer.parseInt(movie.getReleaseDate().substring(0, 4)) < Integer.parseInt(releaseYear));
+
+        if (sortBy.equals("Release Year")) {
+            filteredList.sort((movie1, movie2) -> movie2.getReleaseDate().compareTo(movie1.getReleaseDate()));
+        } else if (sortBy.equals("Rating")) {
+            filteredList.sort((movie1, movie2) -> Double.compare(movie2.getVoteAverage(), movie1.getVoteAverage()));
+        }
+
+        favoriteList.clear();
+        favoriteList.addAll(filteredList);
+
+        movieListAdapter.notifyDataSetChanged();
     }
 
     /**

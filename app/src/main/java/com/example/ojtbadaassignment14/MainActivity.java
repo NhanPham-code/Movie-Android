@@ -40,6 +40,7 @@ import com.example.ojtbadaassignment14.fragments.FavoriteListFragment;
 import com.example.ojtbadaassignment14.fragments.MovieDetailFragment;
 import com.example.ojtbadaassignment14.fragments.MovieListFragment;
 import com.example.ojtbadaassignment14.fragments.SettingFragment;
+import com.example.ojtbadaassignment14.fragments.SettingsFragment;
 import com.example.ojtbadaassignment14.models.Movie;
 import com.example.ojtbadaassignment14.models.Reminder;
 import com.example.ojtbadaassignment14.services.Base64Helper;
@@ -84,6 +85,9 @@ public class MainActivity extends AppCompatActivity implements CallbackService {
     SettingFragment settingFragment;
     AboutFragment aboutFragment;
     List<Fragment> fragmentList;
+
+    // Preferences Setting fragment
+    SettingsFragment settingsFragment;
 
     // Base64Helper
     Base64Helper base64Helper = new Base64Helper();
@@ -436,14 +440,22 @@ public class MainActivity extends AppCompatActivity implements CallbackService {
         favoriteListFragment = FavoriteListFragment.newInstance();
         favoriteListFragment.setCallbackService(MainActivity.this);
 
-        settingFragment = SettingFragment.newInstance();
+        //settingFragment = SettingFragment.newInstance();
+        // Preferences Setting fragment
+        settingsFragment = new SettingsFragment();
+
         aboutFragment = AboutFragment.newInstance();
+
 
         fragmentList = new ArrayList<>();
         fragmentList.add(commonFragment); // add common fragment to handle fragment transaction
         fragmentList.add(favoriteListFragment);
-        fragmentList.add(settingFragment);
+        //fragmentList.add(settingFragment);
+        // use Preferences Setting fragment
+        fragmentList.add(settingsFragment);
+
         fragmentList.add(aboutFragment);
+
 
         viewPagerAdapter = new ViewPagerAdapter(this, fragmentList);
         viewPager2.setAdapter(viewPagerAdapter);
@@ -579,6 +591,14 @@ public class MainActivity extends AppCompatActivity implements CallbackService {
         // update badge tag after favorite or unfavorite movie
         updateBadgeTag();
 
+    }
+
+    /**
+     * Update badge tag for favorite list tab when Preference Setting change
+     */
+    @Override
+    public void updateBadgeCount() {
+        updateBadgeTag();
     }
 
     /**

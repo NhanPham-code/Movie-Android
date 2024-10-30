@@ -8,4 +8,5 @@ public interface CallbackService {
     void onFavoriteMovie(Movie movie);
     void backToMovieList();
     void updateReminderList();
+    void updateBadgeCount();
 }

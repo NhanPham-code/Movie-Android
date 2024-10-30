@@ -7,6 +7,7 @@ import android.os.Bundle;
 
 import androidx.annotation.NonNull;
 import androidx.fragment.app.Fragment;
+import androidx.preference.PreferenceManager;
 import androidx.recyclerview.widget.GridLayoutManager;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
@@ -72,7 +73,12 @@ public class MovieListFragment extends Fragment {
         super.onCreate(savedInstanceState);
         Log.d("check", "onCreate: ");
         movieList = new ArrayList<>();
-        sharedPreferences = getActivity().getSharedPreferences("MoviePreferences", Context.MODE_PRIVATE);
+
+        // Get shared preferences by setting fragment custom
+        //sharedPreferences = getActivity().getSharedPreferences("MoviePreferences", Context.MODE_PRIVATE);
+
+        // Get shared preferences by Preference Settings fragment (ADVANCED)
+        sharedPreferences = PreferenceManager.getDefaultSharedPreferences(requireContext());
 
         // Register preference change listener to update movie list if there is any change in user preferences settings
         registerPreferenceChangeListener();
@@ -208,6 +214,8 @@ public class MovieListFragment extends Fragment {
     private void getMovieListByCategoryFromSharePreferences() {
         // Retrieve preferences
         String category = sharedPreferences.getString("category", "Popular");
+        Log.d("TAGTAGTAG", "getMovieListByCategoryFromSharePreferences: category: " + category);
+
 
         // get movie list by category
         switch (category) {
@@ -297,6 +305,7 @@ public class MovieListFragment extends Fragment {
         String rating = sharedPreferences.getString("rating", "0");
         String releaseYear = sharedPreferences.getString("releaseYear", "1970");
         String sortBy = sharedPreferences.getString("sortBy", "Release Year");
+        Log.d("TAGTAGTAG", "filterAndSortMovieList: rating: " + rating + ", releaseYear: " + releaseYear + ", sortBy: " + sortBy);
 
         // filter movie list by rating, release year
         List<Movie> filteredMovies = new ArrayList<>();
